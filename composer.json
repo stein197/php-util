@@ -1,6 +1,7 @@
 {
     "name": "stein197/util",
     "description": "Utility functions",
+    "version": "1.0.0",
     "type": "library",
     "license": "MIT",
     "scripts": {

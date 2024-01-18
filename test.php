@@ -77,6 +77,19 @@ class UtilTest extends TestCase {
 	}
 
 	#[Test]
+	public function property_exists_should_return_true_when_is_object_and_property_is_dynamic(): void {
+		$this->assertTrue(property_exists(new class (['a' => 1]) {
+			public function __construct(private readonly array $props) {}
+			public function __get(string $name): mixed {
+				return @$this->props[$name];
+			}
+			public function __isset(string $name): bool {
+				return isset($this->props[$name]);
+			}
+		}, 'a'));
+	}
+
+	#[Test]
 	public function property_exists_should_return_false_when_is_array_and_property_does_not_exist(): void {
 		$this->assertFalse(property_exists([], 'a'));
 	}
@@ -120,22 +133,6 @@ class UtilTest extends TestCase {
 			public function __construct(private readonly string $a) {}
 		};
 		$this->assertNull(property_get($var, 'a'));
-	}
-
-	#[Test]
-	public function property_get_should_return_ref_when_is_array_and_property_exists(): void {
-		$var = ['a' => 1];
-		$prop = &property_get($var, 'a');
-		$prop = 10;
-		$this->assertEquals(10, $var['a']);
-	}
-
-	#[Test]
-	public function property_get_should_return_ref_when_is_object_and_property_exists(): void {
-		$var = (object) ['a' => 1];
-		$prop = &property_get($var, 'a');
-		$prop = 10;
-		$this->assertEquals(10, $var->a);
 	}
 
 	#endregion
@@ -216,6 +213,9 @@ class UtilTest extends TestCase {
 				$this->data[$name] = $value;
 			}
 			public function __unset(string $name): void {}
+			public function __isset(string $name): bool {
+				return isset($this->data[$name]);
+			}
 		};
 		$var->a = 1;
 		$this->assertFalse(property_unset($var, 'a'));

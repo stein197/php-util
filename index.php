@@ -40,7 +40,7 @@ function iterate(string | object | iterable $var): iterable {
  * ```
  */
 function property_exists(array | object $var, string $property): bool {
-	return is_array($var) ? array_key_exists($property, $var) : !!\property_exists($var, $property);
+	return is_array($var) ? array_key_exists($property, $var) : !!\property_exists($var, $property) || isset($var->{$property});
 }
 
 /**
@@ -53,7 +53,7 @@ function property_exists(array | object $var, string $property): bool {
  * property_get((object) ['a' => 1], 'a'); // 1
  * ```
  */
-function &property_get(array | object &$var, string $property): mixed {
+function property_get(array | object &$var, string $property): mixed {
 	if (is_array($var))
 		if (property_exists($var, $property))
 			return $var[$property];
