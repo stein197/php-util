@@ -60,7 +60,7 @@ function property_get(array | object &$var, string $property): mixed {
 		else
 			return null;
 	try {
-		return $var->{$property};
+		return @$var->{$property};
 	} catch (Error) {
 		return null;
 	}

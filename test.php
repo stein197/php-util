@@ -267,7 +267,7 @@ class UtilTest extends TestCase {
 
 	#[Test]
 	public function to_object_should_deeply_convert_arrays(): void {
-		$var = &to_object(['a' => ['b' => ['c' => 3]]]);
+		$var = to_object(['a' => ['b' => ['c' => 3]]]);
 		$this->assertEquals(3, $var->a->b->c);
 	}
 
