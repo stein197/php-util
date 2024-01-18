@@ -146,10 +146,6 @@ function to_object(array | object $var, int $depth = PHP_INT_MAX): object {
 
 // PRIVATE FUNCTIONS
 
-function is_array_or_object(mixed $var): bool {
-	return is_array($var) || is_object($var);
-}
-
 function to_array_or_object(string $type, array | object $var, int $depth): array | object {
 	if ($depth < 1)
 		$depth = 1;
@@ -157,6 +153,6 @@ function to_array_or_object(string $type, array | object $var, int $depth): arra
 	$entries = is_array($var) ? $var : get_object_vars($var);
 	$nextDepth = $depth - 1;
 	foreach ($entries as $k => $v)
-		property_set($result, $k, is_array_or_object($v) && $depth > 1 ? to_array_or_object($type, $v, $nextDepth) : $v);
+		property_set($result, $k, (is_array($v) || is_object($v)) && $depth > 1 ? to_array_or_object($type, $v, $nextDepth) : $v);
 	return $result;
 }
