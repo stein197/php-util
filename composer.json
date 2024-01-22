@@ -1,7 +1,7 @@
 {
     "name": "stein197/util",
     "description": "Utility functions",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "type": "library",
     "license": "MIT",
     "scripts": {
@@ -11,6 +11,9 @@
         "test": "Run tests"
     },
     "autoload": {
+        "psr-4": {
+            "Stein197\\Util\\": "src/"
+        },
         "files": [
             "index.php"
         ]
