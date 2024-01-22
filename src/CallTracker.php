@@ -21,7 +21,7 @@ final class CallTracker {
 			'input' => $args,
 			'output' => ($this->f)(...$args)
 		];
-		$data[] = $record;
+		$this->data[] = $record;
 		return $record['output'];
 	}
 
