@@ -12,6 +12,21 @@ use function str_split;
 use const PHP_INT_MAX;
 
 /**
+ * Track function calls - inputs and outputs.
+ * @param callable $f Function to track.
+ * @return CallTracker Tracked function.
+ * ```php
+ * $f = function_track(fn (int $a, int $b): int => $a + $b);
+ * $f(1, 2);
+ * $f(3, 4);
+ * $f->data(); // [['input' => [1, 2], 'output' => 3], ['input' => [3, 4], 'output' => 7]]
+ * ```
+ */
+function function_track(callable $f): CallTracker {
+	return new CallTracker($f);
+}
+
+/**
  * Iterate through iterables - strings, arrays, objects and iterables.
  * @param string|object|iterable $var Variable to iterate through.
  * @return iterable Iterable.

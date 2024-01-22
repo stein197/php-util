@@ -7,6 +7,19 @@ use PHPUnit\Framework\TestCase;
 
 class UtilTest extends TestCase {
 
+	#region function_track()
+
+	public function function_track_should_work(): void {
+		$f = function_track(fn (int $a, int $b): int => $a + $b);
+		$this->assertEmpty($f->data());
+		$f(1, 2);
+		$this->assertEquals([['input' => [1, 2], 'output' => 3]], $f->data());
+		$f(3, 4);
+		$this->assertEquals([['input' => [1, 2], 'output' => 3], ['input' => [3, 4], 'output' => 7]], $f->data());
+	}
+
+	#endregion
+
 	#region iterate()
 
 	#[Test]

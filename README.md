@@ -7,6 +7,7 @@ composer require stein197/util
 ## API
 | Function | Description |
 |----------|-------------|
+| `function_track(callable $f): CallTracker` | Track function calls - inputs and outputs. |
 | `iterate(string \| object \| iterable $var): iterable` | Iterate through iterables - strings, arrays, objects and iterables |
 | `property_exists(array \| object $var, string $property): bool` | Check if array or object property exists |
 | `&property_get(array \| object &$var, string $property): mixed` | Get a property of an array or object |
