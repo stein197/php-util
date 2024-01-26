@@ -82,6 +82,19 @@ function property_get(array | object &$var, string $property): mixed {
 }
 
 /**
+ * List property names of an array or an object.
+ * @param array|object $var Array or object to return properties from.
+ * @return (int|string)[] Properties list.
+ * ```php
+ * property_list(['a', 'b', 'c']);     // [0, 1, 2]
+ * property_list((object) ['a' => 1]); // ['a']
+ * ```
+ */
+function property_list(array | object $var): array {
+	return array_keys(is_array($var) ? $var : get_object_vars($var));
+}
+
+/**
  * Set a property value for an array or object.
  * @param array|object $var Array or object to set property for.
  * @param string $property Property name.

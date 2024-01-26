@@ -150,6 +150,30 @@ class UtilTest extends TestCase {
 
 	#endregion
 
+	#region property_list()
+
+	#[Test]
+	public function property_list_should_return_an_empty_array_when_the_array_is_empty(): void {
+		$this->assertEmpty(property_list([]));
+	}
+
+	#[Test]
+	public function property_list_should_return_an_empty_array_when_the_object_is_empty(): void {
+		$this->assertEmpty(property_list((object) []));
+	}
+
+	#[Test]
+	public function property_list_when_the_argument_is_an_array(): void {
+		$this->assertEquals([0, 1, 2, 'a'], property_list(['a', 'b', 'c', 'a' => 1]));
+	}
+
+	#[Test]
+	public function property_list_when_the_argument_is_an_object(): void {
+		$this->assertEquals([0, 1, 2, 'a'], property_list((object) ['a', 'b', 'c', 'a' => 1]));
+	}
+
+	#endregion
+
 	#region property_set()
 
 	#[Test]
