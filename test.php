@@ -112,6 +112,11 @@ class UtilTest extends TestCase {
 		$this->assertFalse(property_exists((object) [], 'a'));
 	}
 
+	#[Test]
+	public function property_exists_when_the_property_is_int(): void {
+		$this->assertTrue(property_exists(['a', 'b', 'c'], 1));
+	}
+
 	#endregion
 
 	#region property_get()
@@ -146,6 +151,12 @@ class UtilTest extends TestCase {
 			public function __construct(private readonly string $a) {}
 		};
 		$this->assertNull(property_get($var, 'a'));
+	}
+
+	#[Test]
+	public function property_get_when_the_property_is_int(): void {
+		$var = ['a', 'b', 'c'];
+		$this->assertEquals('b', property_get($var, 1));
 	}
 
 	#endregion
@@ -221,6 +232,13 @@ class UtilTest extends TestCase {
 		$this->assertNull($var->a);
 	}
 
+	#[Test]
+	public function property_set_when_the_property_is_int(): void {
+		$var = ['a', 'b', 'c'];
+		$this->assertTrue(property_set($var, 1, 'B'));
+		$this->assertEquals(['a', 'B', 'c'], $var);
+	}
+
 	#endregion
 	
 	#region property_unset()
@@ -261,6 +279,13 @@ class UtilTest extends TestCase {
 			public function __construct(private readonly string $a) {}
 		};
 		$this->assertFalse(property_unset($var, 'a'));
+	}
+
+	#[Test]
+	public function property_unset_when_the_property_is_int(): void {
+		$var = ['a', 'b', 'c'];
+		$this->assertTrue(property_unset($var, 1));
+		$this->assertEquals(['a', 2 => 'c'], $var);
 	}
 
 	#endregion

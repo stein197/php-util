@@ -43,7 +43,7 @@ function iterate(string | object | iterable $var): iterable {
 /**
  * Check if array or object property exists.
  * @param array|object $var Array or object to check for property existance.
- * @param string $property Property name.
+ * @param int|string $property Property name.
  * @return bool `true` if property exists.
  * ```php
  * $a = ['a' => 1];
@@ -54,21 +54,21 @@ function iterate(string | object | iterable $var): iterable {
  * property_exists($o, 'b'); // false
  * ```
  */
-function property_exists(array | object $var, string $property): bool {
+function property_exists(array | object $var, int | string $property): bool {
 	return is_array($var) ? array_key_exists($property, $var) : !!\property_exists($var, $property) || isset($var->{$property});
 }
 
 /**
  * Get a property of an array or object.
  * @param array|object $var Array or object to get property value from.
- * @param string $property Property name.
+ * @param int|string $property Property name.
  * @return mixed Property value or null if the property does not exist.
  * ```php
  * property_get(['a' => 1], 'a');          // 1
  * property_get((object) ['a' => 1], 'a'); // 1
  * ```
  */
-function property_get(array | object &$var, string $property): mixed {
+function property_get(array | object &$var, int | string $property): mixed {
 	if (is_array($var))
 		if (property_exists($var, $property))
 			return $var[$property];
@@ -97,7 +97,7 @@ function property_list(array | object $var): array {
 /**
  * Set a property value for an array or object.
  * @param array|object $var Array or object to set property for.
- * @param string $property Property name.
+ * @param int|string $property Property name.
  * @param mixed $value Property value.
  * @return bool `true` if the operation is succeeded, `false` otherwise.
  * ```php
@@ -109,7 +109,7 @@ function property_list(array | object $var): array {
  * $o; // {a: 1}
  * ```
  */
-function property_set(array | object &$var, string $property, mixed $value): bool {
+function property_set(array | object &$var, int | string $property, mixed $value): bool {
 	if (is_array($var)) {
 		$var[$property] = $value;
 		return $var[$property] === $value;
@@ -125,7 +125,7 @@ function property_set(array | object &$var, string $property, mixed $value): boo
 /**
  * Unset an array or object property.
  * @param array|object $var Array or object to unset a property from.
- * @param string $property Property name.
+ * @param int|string $property Property name.
  * @return bool `true` if the operation succeeded.
  * ```php
  * $a = ['a' => 1];
@@ -134,7 +134,7 @@ function property_set(array | object &$var, string $property, mixed $value): boo
  * property_unset($o, 'a'); // true
  * ```
  */
-function property_unset(array | object &$var, string $property): bool {
+function property_unset(array | object &$var, int | string $property): bool {
 	if (is_array($var))
 		unset($var[$property]);
 	else
