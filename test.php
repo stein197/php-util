@@ -35,72 +35,72 @@ class UtilTest extends TestCase {
 
 	#[Test]
 	public function dump_when_it_is_a_string(): void {
-		$this->assertEquals('\'string\\\'"\\\\\'', dump('string\'"\\', false));
+		$this->assertEquals('\'string\\\'"\\\\\'', dump('string\'"\\', ''));
 	}
 
 	#[Test]
 	public function dump_when_it_is_a_resource(): void {
 		$f = fopen(__FILE__, 'r');
-		$this->assertEquals('resource#' . get_resource_id($f) . '(' . get_resource_type($f) . ')', dump($f, false));
+		$this->assertEquals('resource#' . get_resource_id($f) . '(' . get_resource_type($f) . ')', dump($f, ''));
 		fclose($f);
 	}
 
 	#[Test]
 	public function dump_when_it_is_a_function(): void {
-		$this->assertMatchesRegularExpression('/callable#' . spl_object_id(dump(...)) . '\\(' . preg_quote(__DIR__ . DIRECTORY_SEPARATOR) . 'index\\.php:\\d+\\)/', dump(dump(...), false));
+		$this->assertMatchesRegularExpression('/callable#' . spl_object_id(dump(...)) . '\\(' . preg_quote(__DIR__ . DIRECTORY_SEPARATOR) . 'index\\.php:\\d+\\)/', dump(dump(...), ''));
 	}
 
 	#[Test]
-	public function dump_when_it_is_an_array_and_pretty_is_false(): void {
-		$this->assertEquals("[null, 12, 'string', 'array' => ['a' => []]]", dump([null, 12, 'string', 'array' => ['a' => []]], false));
+	public function dump_when_it_is_an_array_and_no_indent(): void {
+		$this->assertEquals("[null, 12, 'string', 'array' => ['a' => []]]", dump([null, 12, 'string', 'array' => ['a' => []]], ''));
 	}
 
 	#[Test]
-	public function dump_when_it_is_an_array_and_pretty_is_true(): void {
-		$this->assertEquals("[\n\tnull,\n\t12,\n\t'string',\n\t'array' => [\n\t\t'a' => []\n\t]\n]\n", dump([null, 12, 'string', 'array' => ['a' => []]], true));
+	public function dump_when_it_is_an_array_and_has_indent(): void {
+		$this->assertEquals("[\n\tnull,\n\t12,\n\t'string',\n\t'array' => [\n\t\t'a' => []\n\t]\n]\n", dump([null, 12, 'string', 'array' => ['a' => []]], "\t"));
 	}
 
 	#[Test]
-	public function dump_when_it_is_an_array_and_sparsed_and_pretty_is_false(): void {
-		$this->assertEquals('[\'a\', 2 => \'c\']', dump(['a', 2 => 'c'], false));
+	public function dump_when_it_is_an_array_and_sparsed_and_no_indent(): void {
+		$this->assertEquals('[\'a\', 2 => \'c\']', dump(['a', 2 => 'c'], ''));
 	}
 
-	public function dump_when_it_is_an_array_and_sparsed_and_pretty_is_true(): void {
-		$this->assertEquals("[\n\t'a',\n\t2 => 'c'\n]\n", dump(['a', 2 => 'c'], true));
-	}
-
-	#[Test]
-	public function dump_when_it_is_a_stdClass_and_pretty_is_false(): void {
-		$this->assertEquals('(object) [\'null\' => null, \'string\' => \'string\', \'object\' => (object) [\'a\' => (object) []]]', dump((object) ['null' => null, 'string' => 'string', 'object' => (object) ['a' => (object) []]], false));
+	public function dump_when_it_is_an_array_and_sparsed_and_has_indent(): void {
+		$this->assertEquals("[\n\t'a',\n\t2 => 'c'\n]\n", dump(['a', 2 => 'c'], "\t"));
 	}
 
 	#[Test]
-	public function dump_when_it_is_a_stdClass_and_pretty_is_true(): void {
-		$this->assertEquals("(object) [\n\t'null' => null,\n\t'string' => 'string',\n\t'object' => (object) [\n\t\t'a' => (object) []\n\t]\n]\n", dump((object) ['null' => null, 'string' => 'string', 'object' => (object) ['a' => (object) []]], true));
+	public function dump_when_it_is_a_stdClass_and_no_indent(): void {
+		$this->assertEquals('(object) [\'null\' => null, \'string\' => \'string\', \'object\' => (object) [\'a\' => (object) []]]', dump((object) ['null' => null, 'string' => 'string', 'object' => (object) ['a' => (object) []]], ''));
 	}
 
 	#[Test]
-	public function dump_when_it_is_a_dumpable_and_pretty_is_false(): void {
-		$this->assertEquals('false-0', dump(new class implements Dumpable {
-			public function dump(bool $pretty, int $depth): string {
-				return var_export($pretty, true) . '-' . $depth;
+	public function dump_when_it_is_a_stdClass_and_has_indent(): void {
+		$this->assertEquals("(object) [\n\t'null' => null,\n\t'string' => 'string',\n\t'object' => (object) [\n\t\t'a' => (object) []\n\t]\n]\n", dump((object) ['null' => null, 'string' => 'string', 'object' => (object) ['a' => (object) []]], "\t"));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_dumpable_and_no_indent(): void {
+		$this->assertEquals('-0', dump(new class implements Dumpable {
+			public function dump(string $indent, int $depth): string {
+				return $indent . '-' . $depth;
 			}
-		}, false));
+		}, ''));
 	}
 
 	#[Test]
-	public function dump_when_it_is_a_dumpable_and_pretty_is_true(): void {
-		$this->assertEquals("true-0\n", dump(new class implements Dumpable {
-			public function dump(bool $pretty, int $depth): string {
-				return var_export($pretty, true) . '-' . $depth;
+	public function dump_when_it_is_a_dumpable_and_has_indent(): void {
+		$this->assertEquals("\t-0\n", dump(new class implements Dumpable {
+			public function dump(string $indent, int $depth): string {
+				return $indent . '-' . $depth;
 			}
-		}, true));
+		}, "\t"));
 	}
 
 	#[Test]
 	public function dump_when_it_is_an_object(): void {
 		$o = new class {};
-		$this->assertEquals('object#' . spl_object_id($o) . '(' . $o::class . ')', dump($o, false));
+		$this->assertEquals('object#' . spl_object_id($o) . '(' . $o::class . ')', dump($o, ''));
 	}
 
 	#[Test]

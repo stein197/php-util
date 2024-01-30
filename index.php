@@ -32,32 +32,33 @@ use const PHP_INT_MAX;
  * - prints the type of a resource and the source of a function (if possible)
  * - allows custom dumping for classes implementing the `Dumpable` interface
  * @param mixed $value Value to dump.
- * @param bool $pretty Make the output with indentation.
+ * @param string $origIndent Indentation to use. Empty string means no pretty-printing.
  * @param int $depth Indentation depth to print. Works only if `$pretty` is `true`.
  * @return string Dumped output.
  */
-function dump(mixed $value, bool $pretty = true, int $depth = 0): string {
-	$indent = $pretty ? str_repeat("\t", $depth) : '';
-	$lf = $pretty ? "\n" : '';
+function dump(mixed $value, string $indent = "\t", int $depth = 0): string {
+	$origIndent = $indent;
+	$indent = str_repeat($origIndent, $depth);
+	$lf = $origIndent ? "\n" : '';
 	if ($value instanceof Dumpable)
-		return $value->dump($pretty, $depth) . $lf;
+		return $value->dump($origIndent, $depth) . $lf;
 	$isStdClass = $value instanceof stdClass;
 	if (is_array($value) || $isStdClass) {
 		$result = $indent . ($isStdClass ? '(object) ' : '') . '[';
 		if (!length($value))
 			return $result . ']';
 		$nextDepth = $depth + 1;
-		$result .= $lf . ($pretty ? str_repeat("\t", $nextDepth) : '');
+		$result .= $lf . str_repeat($origIndent, $nextDepth);
 		$needIndex = key_first($value) !== 0;
 		$prevKey = null;
 		$list = [];
 		foreach ($value as $k => $v) {
 			if ($prevKey !== null)
 				$needIndex = !is_int($prevKey) || !is_int($k) || $prevKey + 1 !== $k;
-			$list[] = ($needIndex ? dump($k, false) . ' => ' : '') . trim(dump($v, $pretty, $nextDepth));
+			$list[] = ($needIndex ? dump($k, false) . ' => ' : '') . trim(dump($v, $origIndent, $nextDepth));
 			$prevKey = $k;
 		}
-		return $result . join(',' . $lf . ($pretty ? str_repeat("\t", $nextDepth) : ' '), $list) . $lf . $indent . ']' . $lf;
+		return $result . join(',' . $lf . ($origIndent ? str_repeat($origIndent, $nextDepth) : ' '), $list) . $lf . $indent . ']' . $lf;
 	}
 	if (is_callable($value)) {
 		$info = new ReflectionFunction($value);
