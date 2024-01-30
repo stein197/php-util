@@ -4,8 +4,111 @@ namespace Stein197\Util;
 use Iterator;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use function fopen;
+use function fclose;
+use function get_resource_id;
+use function get_resource_type;
+use function preg_quote;
+use function spl_object_id;
+use function var_export;
+use const DIRECTORY_SEPARATOR;
 
 class UtilTest extends TestCase {
+
+	#region dump()
+
+	#[Test]
+	public function dump_when_it_is_a_null(): void {
+		$this->assertEquals("null\n", dump(null));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_boolean(): void {
+		$this->assertEquals("false\n", dump(false));
+		$this->assertEquals("true\n", dump(true));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_number(): void {
+		$this->assertEquals("12\n", dump(12));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_string(): void {
+		$this->assertEquals('\'string\\\'"\\\\\'', dump('string\'"\\', false));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_resource(): void {
+		$f = fopen(__FILE__, 'r');
+		$this->assertEquals('resource#' . get_resource_id($f) . '(' . get_resource_type($f) . ')', dump($f, false));
+		fclose($f);
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_function(): void {
+		$this->assertMatchesRegularExpression('/callable#' . spl_object_id(dump(...)) . '\\(' . preg_quote(__DIR__ . DIRECTORY_SEPARATOR) . 'index\\.php:\\d+\\)/', dump(dump(...), false));
+	}
+
+	#[Test]
+	public function dump_when_it_is_an_array_and_pretty_is_false(): void {
+		$this->assertEquals("[null, 12, 'string', 'array' => ['a' => []]]", dump([null, 12, 'string', 'array' => ['a' => []]], false));
+	}
+
+	#[Test]
+	public function dump_when_it_is_an_array_and_pretty_is_true(): void {
+		$this->assertEquals("[\n\tnull,\n\t12,\n\t'string',\n\t'array' => [\n\t\t'a' => []\n\t]\n]\n", dump([null, 12, 'string', 'array' => ['a' => []]], true));
+	}
+
+	#[Test]
+	public function dump_when_it_is_an_array_and_sparsed_and_pretty_is_false(): void {
+		$this->assertEquals('[\'a\', 2 => \'c\']', dump(['a', 2 => 'c'], false));
+	}
+
+	public function dump_when_it_is_an_array_and_sparsed_and_pretty_is_true(): void {
+		$this->assertEquals("[\n\t'a',\n\t2 => 'c'\n]\n", dump(['a', 2 => 'c'], true));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_stdClass_and_pretty_is_false(): void {
+		$this->assertEquals('(object) [\'null\' => null, \'string\' => \'string\', \'object\' => (object) [\'a\' => (object) []]]', dump((object) ['null' => null, 'string' => 'string', 'object' => (object) ['a' => (object) []]], false));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_stdClass_and_pretty_is_true(): void {
+		$this->assertEquals("(object) [\n\t'null' => null,\n\t'string' => 'string',\n\t'object' => (object) [\n\t\t'a' => (object) []\n\t]\n]\n", dump((object) ['null' => null, 'string' => 'string', 'object' => (object) ['a' => (object) []]], true));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_dumpable_and_pretty_is_false(): void {
+		$this->assertEquals('false-0', dump(new class implements Dumpable {
+			public function dump(bool $pretty, int $depth): string {
+				return var_export($pretty, true) . '-' . $depth;
+			}
+		}, false));
+	}
+
+	#[Test]
+	public function dump_when_it_is_a_dumpable_and_pretty_is_true(): void {
+		$this->assertEquals("true-0\n", dump(new class implements Dumpable {
+			public function dump(bool $pretty, int $depth): string {
+				return var_export($pretty, true) . '-' . $depth;
+			}
+		}, true));
+	}
+
+	#[Test]
+	public function dump_when_it_is_an_object(): void {
+		$o = new class {};
+		$this->assertEquals('object#' . spl_object_id($o) . '(' . $o::class . ')', dump($o, false));
+	}
+
+	#[Test]
+	public function dump_when_complex_nested_structure(): void {
+		$this->markTestIncomplete();
+	}
+
+	#endregion
 
 	#region function_track()
 

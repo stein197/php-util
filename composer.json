@@ -6,6 +6,7 @@
     "license": "MIT",
     "scripts": {
         "test": "phpunit --display-deprecations --display-notices --display-warnings test.php",
+        "test:dump": "phpunit test.php --filter dump_ --display-deprecations --display-notices --display-warnings",
         "test:function_track": "phpunit test.php --filter function_track_ --display-deprecations --display-notices --display-warnings",
         "test:iterate": "phpunit test.php --filter iterate_ --display-deprecations --display-notices --display-warnings",
         "test:length": "phpunit test.php --filter length_ --display-deprecations --display-notices --display-warnings",

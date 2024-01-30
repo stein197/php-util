@@ -2,17 +2,73 @@
 namespace Stein197\Util;
 
 use Error;
+use ReflectionFunction;
 use stdClass;
 use function array_key_exists;
 use function is_array;
+use function is_callable;
+use function is_int;
 use function is_iterable;
 use function is_object;
+use function is_resource;
 use function is_string;
+use function join;
 use function get_object_vars;
+use function get_resource_id;
+use function get_resource_type;
 use function sizeof;
+use function spl_object_id;
+use function str_repeat;
 use function str_split;
 use function strlen;
+use function trim;
+use function var_export;
 use const PHP_INT_MAX;
+
+/**
+ * Dump a variable. Basically it's the same as `var_dump()` or `var_export()`, except that this function:
+ * - returns a string instead of printing directly into stdout
+ * - allows to pretty print the output for arrays and other structures
+ * - prints the type of a resource and the source of a function (if possible)
+ * - allows custom dumping for classes implementing the `Dumpable` interface
+ * @param mixed $value Value to dump.
+ * @param bool $pretty Make the output with indentation.
+ * @param int $depth Indentation depth to print. Works only if `$pretty` is `true`.
+ * @return string Dumped output.
+ */
+function dump(mixed $value, bool $pretty = true, int $depth = 0): string {
+	$indent = $pretty ? str_repeat("\t", $depth) : '';
+	$lf = $pretty ? "\n" : '';
+	if ($value instanceof Dumpable)
+		return $value->dump($pretty, $depth) . $lf;
+	$isStdClass = $value instanceof stdClass;
+	if (is_array($value) || $isStdClass) {
+		$result = $indent . ($isStdClass ? '(object) ' : '') . '[';
+		if (!length($value))
+			return $result . ']';
+		$nextDepth = $depth + 1;
+		$result .= $lf . ($pretty ? str_repeat("\t", $nextDepth) : '');
+		$needIndex = key_first($value) !== 0;
+		$prevKey = null;
+		$list = [];
+		foreach ($value as $k => $v) {
+			if ($prevKey !== null)
+				$needIndex = !is_int($prevKey) || !is_int($k) || $prevKey + 1 !== $k;
+			$list[] = ($needIndex ? dump($k, false) . ' => ' : '') . trim(dump($v, $pretty, $nextDepth));
+			$prevKey = $k;
+		}
+		return $result . join(',' . $lf . ($pretty ? str_repeat("\t", $nextDepth) : ' '), $list) . $lf . $indent . ']' . $lf;
+	}
+	if (is_callable($value)) {
+		$info = new ReflectionFunction($value);
+		return $indent . 'callable#' . spl_object_id($value) . ($info->getFileName() ? '(' . $info->getFileName() . ':' . $info->getStartLine() . ')' : '') . $lf;
+	}
+	if (is_object($value))
+		return $indent . 'object#' . spl_object_id($value) . '(' . $value::class . ')' . $lf;
+	if (is_resource($value))
+		return $indent . 'resource#' . get_resource_id($value) . '(' . get_resource_type($value) . ')' . $lf;
+	return $indent . ($value === null ? 'null' : var_export($value, true)) . $lf;
+}
 
 /**
  * Track function calls - inputs and outputs.
@@ -196,6 +252,12 @@ function to_object(array | object $var, int $depth = PHP_INT_MAX): object {
 }
 
 // PRIVATE FUNCTIONS
+
+function key_first(object | iterable $var): null | int | string {
+	foreach ($var as $k => $v)
+		return $k;
+	return null;
+}
 
 function to_array_or_object(string $type, array | object $var, int $depth): array | object {
 	if ($depth < 1)
