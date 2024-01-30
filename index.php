@@ -7,8 +7,11 @@ use function array_key_exists;
 use function is_array;
 use function is_iterable;
 use function is_object;
+use function is_string;
 use function get_object_vars;
+use function sizeof;
 use function str_split;
+use function strlen;
 use const PHP_INT_MAX;
 
 /**
@@ -38,6 +41,26 @@ function function_track(callable $f): CallTracker {
  */
 function iterate(string | object | iterable $var): iterable {
 	return is_iterable($var) ? $var : (is_object($var) ? get_object_vars($var) : (is_array($var) ? $var : str_split($var)));
+}
+
+/**
+ * Get a length of a variable. For strings it's a string length, for arrays, objects and iterables it's the amount of
+ * entries.
+ * @param string|object|iterable $var Variable to get length for.
+ * @return int Variable length.
+ * ```php
+ * length('abc');              // 3
+ * length([1, 2, 3]);          // 3
+ * length((object) [1, 2, 3]); // 3
+ * ```
+ */
+function length(string | object | iterable $var): int {
+	return match (true) {
+		is_string($var) => strlen($var),
+		is_array($var) => sizeof($var),
+		$var instanceof stdClass => sizeof((array) $var),
+		default => sizeof([...$var])
+	};
 }
 
 /**

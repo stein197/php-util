@@ -67,6 +67,50 @@ class UtilTest extends TestCase {
 
 	#endregion
 
+	#region length()
+
+	#[Test]
+	public function length_when_is_string(): void {
+		$this->assertEquals(3, length('abc'));
+	}
+
+	#[Test]
+	public function length_when_is_array(): void {
+		$this->assertEquals(3, length(['a', 'b', 'c']));
+	}
+
+	#[Test]
+	public function length_when_is_stdClass(): void {
+		$this->assertEquals(3, length((object) ['a', 'b', 'c']));
+	}
+
+	#[Test]
+	public function length_when_is_iterable(): void {
+		$this->assertEquals(3, length($this->getIterableForIterate(3)));
+	}
+
+	#[Test]
+	public function length_when_is_string_and_empty(): void {
+		$this->assertEquals(0, length(''));
+	}
+
+	#[Test]
+	public function length_when_is_array_and_empty(): void {
+		$this->assertEquals(0, length([]));
+	}
+
+	#[Test]
+	public function length_when_is_stdClass_and_empty(): void {
+		$this->assertEquals(0, length((object) []));
+	}
+
+	#[Test]
+	public function length_when_is_iterable_and_empty(): void {
+		$this->assertEquals(0, length($this->getIterableForIterate(0)));
+	}
+
+	#endregion
+
 	#region property_exists()
 
 	#[Test]

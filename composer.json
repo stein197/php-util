@@ -8,6 +8,7 @@
         "test": "phpunit --display-deprecations --display-notices --display-warnings test.php",
         "test:function_track": "phpunit test.php --filter function_track_ --display-deprecations --display-notices --display-warnings",
         "test:iterate": "phpunit test.php --filter iterate_ --display-deprecations --display-notices --display-warnings",
+        "test:length": "phpunit test.php --filter length_ --display-deprecations --display-notices --display-warnings",
         "test:property_exists": "phpunit test.php --filter property_exists_ --display-deprecations --display-notices --display-warnings",
         "test:property_get": "phpunit test.php --filter property_get_ --display-deprecations --display-notices --display-warnings",
         "test:property_list": "phpunit test.php --filter property_list_ --display-deprecations --display-notices --display-warnings",
