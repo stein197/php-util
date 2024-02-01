@@ -4,6 +4,7 @@ namespace Stein197\Util;
 use Error;
 use ReflectionFunction;
 use stdClass;
+use Stein197\Equalable;
 use function array_key_exists;
 use function is_array;
 use function is_callable;
@@ -69,6 +70,35 @@ function dump(mixed $value, string $indent = "\t", int $depth = 0): string {
 	if (is_resource($value))
 		return $indent . 'resource#' . get_resource_id($value) . '(' . get_resource_type($value) . ')' . $lf;
 	return $indent . ($value === null ? 'null' : var_export($value, true)) . $lf;
+}
+
+/**
+ * Compare two variables and check if they are both deeply equal. If any of the arguments implements the `Equalable`
+ * interface, the `equals()` method is called instead.
+ * @param mixed $a The first variable to compare.
+ * @param mixed $b The second variable to compare.
+ * @param bool $strict If `false`, arrays and objects will be considered equal if they have the same properties.
+ * @return bool `true` if both variables are equal. An array and an stdClass-object could be both equal if both
+ *              variables have the same properties and values if `$strict` is false.
+ * ```php
+ * equal(['a' => 1], (object) ['a' => 1]); // true
+ * ```
+ */
+function equal(mixed $a, mixed $b, bool $strict = false): bool {
+	if ($a === $b)
+		return true;
+	$isAEqualable = $a instanceof Equalable;
+	$isBEqualable = $b instanceof Equalable;
+	if ($isAEqualable || $isBEqualable)
+		return $isAEqualable && $a->equals($b) || $isBEqualable && $b->equals($a);
+	if (!is_struct($a) || !is_struct($b))
+		return $a === $b;
+	if ($strict && is_array($a) !== is_array($b) || length($a) !== length($b))
+		return false;
+	foreach ($a as $k => $v)
+		if (!equal($v, property_get($b, $k), $strict))
+			return false;
+	return true;
 }
 
 /**
@@ -253,6 +283,10 @@ function to_object(array | object $var, int $depth = PHP_INT_MAX): object {
 }
 
 // PRIVATE FUNCTIONS
+
+function is_struct(mixed $var): bool {
+	return is_array($var) || $var instanceof stdClass;
+}
 
 function key_first(object | iterable $var): null | int | string {
 	foreach ($var as $k => $v)

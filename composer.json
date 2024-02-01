@@ -6,6 +6,7 @@
     "license": "MIT",
     "scripts": {
         "test": "phpunit --display-deprecations --display-notices --display-warnings test.php",
+        "test:equal": "phpunit test.php --filter equal_ --display-deprecations --display-notices --display-warnings",
         "test:dump": "phpunit test.php --filter dump_ --display-deprecations --display-notices --display-warnings",
         "test:function_track": "phpunit test.php --filter function_track_ --display-deprecations --display-notices --display-warnings",
         "test:iterate": "phpunit test.php --filter iterate_ --display-deprecations --display-notices --display-warnings",
@@ -31,5 +32,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5"
+    },
+    "require": {
+        "stein197/equalable": "^1.0"
     }
 }

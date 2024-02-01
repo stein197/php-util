@@ -4,13 +4,13 @@ namespace Stein197\Util;
 use Iterator;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Stein197\Equalable;
 use function fopen;
 use function fclose;
 use function get_resource_id;
 use function get_resource_type;
 use function preg_quote;
 use function spl_object_id;
-use function var_export;
 use const DIRECTORY_SEPARATOR;
 
 class UtilTest extends TestCase {
@@ -106,6 +106,70 @@ class UtilTest extends TestCase {
 	#[Test]
 	public function dump_when_complex_nested_structure(): void {
 		$this->markTestIncomplete();
+	}
+
+	#endregion
+
+	#region equal()
+
+	#[Test]
+	public function equal_when_the_arguments_are_primitive(): void {
+		$this->assertTrue(equal(null, null));
+		$this->assertTrue(equal(false, false));
+		$this->assertTrue(equal(12, 12));
+		$this->assertTrue(equal('string', 'string'));
+		$this->assertFalse(equal(false, true));
+		$this->assertFalse(equal(12, 24));
+		$this->assertFalse(equal('abc', 'def'));
+	}
+
+	#[Test]
+	public function equal_should_return_false_when_the_arguments_are_primitive_and_they_arent_strictly_equal(): void {
+		$this->assertFalse(equal(true, 1));
+		$this->assertFalse(equal(12, '12'));
+	}
+
+	#[Test]
+	public function equal_should_return_false_when_the_both_arguments_are_equal_and_have_different_types_and_strict_is_true(): void {
+		$this->assertFalse(equal(['a' => ['b' => ['c' => 3]]], to_object(['a' => ['b' => ['c' => 3]]]), true));
+	}
+
+	#[Test]
+	public function equal_should_return_true_when_the_both_arguments_are_equal_and_have_different_types_and_strict_is_false(): void {
+		$this->assertTrue(equal(['a' => ['b' => ['c' => 3]]], to_object(['a' => ['b' => ['c' => 3]]]), false));
+	}
+
+	#[Test]
+	public function equal_should_return_false_when_the_arguments_are_not_equal(): void {
+		$this->assertFalse(equal(['a' => ['b' => ['c' => 3]]], ['a' => ['b' => ['c' => 3, 'd' => 4]]]));
+	}
+
+	#[Test]
+	public function equal_when_the_first_object_implements_Equalable(): void {
+		$this->assertTrue(equal(new class implements Equalable {
+			public function equals(mixed $var): bool {
+				return true;
+			}
+		}, null));
+		$this->assertFalse(equal(new class implements Equalable {
+			public function equals(mixed $var): bool {
+				return false;
+			}
+		}, null));
+	}
+
+	#[Test]
+	public function equal_when_the_second_object_implements_Equalable(): void {
+		$this->assertTrue(equal(null, new class implements Equalable {
+			public function equals(mixed $var): bool {
+				return true;
+			}
+		}));
+		$this->assertFalse(equal(null, new class implements Equalable {
+			public function equals(mixed $var): bool {
+				return false;
+			}
+		}));
 	}
 
 	#endregion
