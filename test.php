@@ -12,6 +12,7 @@ use function get_resource_type;
 use function preg_quote;
 use function spl_object_id;
 use const DIRECTORY_SEPARATOR;
+use const PHP_INT_MAX;
 
 class UtilTest extends TestCase {
 
@@ -556,6 +557,76 @@ class UtilTest extends TestCase {
 
 	#endregion
 
+	#region var_clone()
+
+	#[Test]
+	public function var_clone_when_the_arg_is_primitive_and_depth_is_min(): void {
+		$this->assertEquals(null, var_clone(null, 0));
+		$this->assertEquals(true, var_clone(true, 0));
+		$this->assertEquals(12, var_clone(12, 0));
+		$this->assertEquals('string', var_clone('string', 0));
+	}
+
+	#[Test]
+	public function var_clone_when_the_arg_is_primitive_and_depth_is_max(): void {
+		$this->assertEquals(null, var_clone(null, PHP_INT_MAX));
+		$this->assertEquals(true, var_clone(true, PHP_INT_MAX));
+		$this->assertEquals(12, var_clone(12, PHP_INT_MAX));
+		$this->assertEquals('string', var_clone('string', PHP_INT_MAX));
+	}
+
+	#[Test]
+	public function var_clone_when_the_arg_is_array_and_depth_is_min(): void {
+		$this->assertEquals(['a' => ['b' => ['c' => 3]]], var_clone(['a' => ['b' => ['c' => 3]]], 1));
+	}
+
+	#[Test]
+	public function var_clone_when_the_arg_is_array_and_depth_is_max(): void {
+		$this->assertEquals(['a' => ['b' => ['c' => 3]]], var_clone(['a' => ['b' => ['c' => 3]]], PHP_INT_MAX));
+	}
+
+	#[Test]
+	public function var_clone_when_the_arg_is_stdClass_and_depth_is_min(): void {
+		$o = to_object(['a' => ['b' => ['c' => 3]]]);
+		$clone = var_clone($o, 1);
+		$o->a->b = 20;
+		$this->assertEquals(20, $o->a->b);
+		$this->assertEquals(20, $clone->a->b);
+	}
+
+	#[Test]
+	public function var_clone_when_the_arg_is_stdClass_and_depth_is_max(): void {
+		$o = to_object(['a' => ['b' => ['c' => 3]]]);
+		$clone = var_clone($o, PHP_INT_MAX);
+		$o->a->b = 20;
+		$this->assertEquals(20, $o->a->b);
+		$this->assertEquals(3, $clone->a->b->c);
+	}
+
+	#[Test]
+	public function var_clone_when_the_arg_is_cloneable(): void {
+		$o = $this->getCloneable(0);
+		$o0 = var_clone($o);
+		$this->assertEquals(0, $o->i);
+		$this->assertEquals(1, $o0->i);
+	}
+
+	#[Test]
+	public function var_clone_when_depth_is_0(): void {
+		$o = to_object(['a' => ['b' => ['c' => 3]]]);
+		$clone = var_clone($o, 0);
+		$this->assertTrue($o === $clone);
+	}
+
+	#[Test]
+	public function var_clone_when_depth_is_negative(): void {
+		$o = to_object(['a' => ['b' => ['c' => 3]]]);
+		$clone = var_clone($o, -10);
+		$this->assertTrue($o === $clone);
+	}
+
+	#endregion
+
 	private function getIterableForIterate(int $n): Iterator {
 		return new class ($n) implements Iterator {
 			private int $i = 0;
@@ -574,6 +645,15 @@ class UtilTest extends TestCase {
 			}
 			public function valid(): bool {
 				return $this->i < $this->steps;
+			}
+		};
+	}
+
+	private function getCloneable(int $i): object {
+		return new class ($i) {
+			public function __construct(public int $i) {}
+			public function __clone(): void {
+				$this->i++;
 			}
 		};
 	}

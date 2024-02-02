@@ -17,7 +17,8 @@
         "test:property_set": "phpunit test.php --filter property_set_ --display-deprecations --display-notices --display-warnings",
         "test:property_unset": "phpunit test.php --filter property_unset_ --display-deprecations --display-notices --display-warnings",
         "test:to_array": "phpunit test.php --filter to_array_ --display-deprecations --display-notices --display-warnings",
-        "test:to_object": "phpunit test.php --filter to_object_ --display-deprecations --display-notices --display-warnings"
+        "test:to_object": "phpunit test.php --filter to_object_ --display-deprecations --display-notices --display-warnings",
+        "test:var_clone": "phpunit test.php --filter var_clone_ --display-deprecations --display-notices --display-warnings"
     },
     "scripts-descriptions": {
         "test": "Run tests"

@@ -282,6 +282,25 @@ function to_object(array | object $var, int $depth = PHP_INT_MAX): object {
 	return to_array_or_object('object', $var, $depth);
 }
 
+/**
+ * Make a deep clone. Arrays and instances of the stdClass will be deeply cloned. For other objects, the `clone`
+ * operator is called.
+ * @param mixed $var Variable to clone.
+ * @param int $depth Max clone depth.
+ * @return mixed Cloned object.
+ */
+function var_clone(mixed $var, int $depth = PHP_INT_MAX): mixed {
+	if ($depth <= 0)
+		return $var;
+	if (!is_struct($var))
+		return is_object($var) ? clone $var : $var;
+	$depthNext = $depth - 1;
+	$result = is_array($var) ? [] : new stdClass;
+	foreach ($var as $k => $v)
+		property_set($result, $k, var_clone($v, $depthNext));
+	return $result;
+}
+
 // PRIVATE FUNCTIONS
 
 function is_struct(mixed $var): bool {
