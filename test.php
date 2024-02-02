@@ -2,19 +2,36 @@
 namespace Stein197\Util;
 
 use Iterator;
+use PHPUnit\Framework\Attributes\After;
+use PHPUnit\Framework\Attributes\AfterClass;
+use PHPUnit\Framework\Attributes\BeforeClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use function array_shift;
 use function fopen;
 use function fclose;
+use function get_include_path;
 use function get_resource_id;
 use function get_resource_type;
+use function join;
 use function preg_quote;
+use function set_include_path;
 use function spl_object_id;
 use const DIRECTORY_SEPARATOR;
+use const PATH_SEPARATOR;
 use const PHP_INT_MAX;
 
 class UtilTest extends TestCase {
 
+	private const INCLUDE_PATH = '.' . PATH_SEPARATOR . __DIR__;
+
+	private static string $includePath = '';
+	
+	#[After]
+	public function after(): void {
+		set_include_path(self::INCLUDE_PATH);
+	}
+	
 	#region dump()
 
 	#[Test]
@@ -119,6 +136,132 @@ class UtilTest extends TestCase {
 		$this->assertEquals([['input' => [1, 2], 'output' => 3]], $f->data());
 		$f(3, 4);
 		$this->assertEquals([['input' => [1, 2], 'output' => 3], ['input' => [3, 4], 'output' => 7]], $f->data());
+	}
+
+	#endregion
+
+	#region include_path_append()
+
+	#[Test]
+	public function include_path_append_when_path_does_not_exist(): void {
+		$this->assertTrue(include_path_append('/new/path'));
+		$this->assertEquals(self::INCLUDE_PATH . PATH_SEPARATOR . path_normalize('/new/path'), get_include_path());
+	}
+
+	#[Test]
+	public function include_path_append_when_path_exists(): void {
+		$this->assertTrue(include_path_append('.'));
+		$this->assertEquals(self::INCLUDE_PATH, get_include_path());
+	}
+
+	#endregion
+
+	#region include_path_delete()
+
+	#[Test]
+	public function include_path_delete_should_do_nothing_when_path_does_not_exist(): void {
+		$this->assertTrue(include_path_delete('/path'));
+		$this->assertEquals(self::INCLUDE_PATH, get_include_path());
+	}
+
+	#[Test]
+	public function include_path_delete_should_delete_path_when_path_exists(): void {
+		$list = include_path_list();
+		$first = array_shift($list);
+		$this->assertTrue(include_path_delete($first));
+		$this->assertEquals(join(PATH_SEPARATOR, $list), get_include_path());
+	}
+
+	#endregion
+
+	#region include_path_get()
+
+	#[Test]
+	public function include_path_get_should_return_null_when_index_does_not_exist(): void {
+		$this->assertNull(include_path_get(10));
+	}
+
+	#[Test]
+	public function include_path_get_should_return_path_when_index_exists(): void {
+		$this->assertEquals('.', include_path_get(0));
+	}
+
+	#endregion
+
+	#region include_path_has()
+
+	#[Test]
+	public function include_path_has_should_return_false_when_path_does_not_exist(): void {
+		$this->assertFalse(include_path_has('/path'));
+	}
+
+	#[Test]
+	public function include_path_has_should_return_true_when_path_exists(): void {
+		$this->assertTrue(include_path_has('.'));
+	}
+
+	#endregion
+
+	#region include_path_index
+
+	#[Test]
+	public function include_path_index_should_return_index_when_path_exists(): void {
+		$this->assertEquals(1, include_path_index(__DIR__));
+	}
+
+	#[Test]
+	public function include_path_index_should_return_negative_when_path_does_not_exist(): void {
+		$this->assertEquals(-1, include_path_index('/path'));
+	}
+
+	#endregion
+
+	#region include_path_list()
+
+	#[Test]
+	public function include_path_list(): void {
+		$this->assertEquals([
+			'.',
+			__DIR__
+		], include_path_list());
+	}
+
+	#endregion
+
+	#region include_path_prepend()
+
+	#[Test]
+	public function include_path_prepend_should_do_nothing_when_path_exists(): void {
+		$this->assertTrue(include_path_prepend('.'));
+		$this->assertEquals(self::INCLUDE_PATH, get_include_path());
+	}
+
+	#[Test]
+	public function include_path_prepend_should_prepend_when_path_does_not_exist(): void {
+		$this->assertTrue(include_path_prepend('/path'));
+		$this->assertEquals(DIRECTORY_SEPARATOR . 'path' . PATH_SEPARATOR . self::INCLUDE_PATH, get_include_path());
+	}
+
+	#endregion
+
+	#region include_path_set()
+
+	#[Test]
+	public function include_path_set_should_override_when_index_exists(): void {
+		$this->assertTrue(include_path_set(1, 'path'));
+		$this->assertEquals('.' . PATH_SEPARATOR . 'path', get_include_path());
+	}
+
+	#[Test]
+	public function include_path_set_should_do_nothing_when_index_does_not_exist(): void {
+		$this->assertFalse(include_path_set(10, 'path'));
+		$this->assertEquals(self::INCLUDE_PATH, get_include_path());
+	}
+
+	#[Test]
+	public function include_path_set_should_delete_when_path_is_null(): void {
+		$this->assertTrue(include_path_set(1, null));
+		$this->assertEquals('.', get_include_path());
 	}
 
 	#endregion
@@ -655,5 +798,16 @@ class UtilTest extends TestCase {
 				$this->i++;
 			}
 		};
+	}
+
+	#[BeforeClass]
+	public static function beforeClass(): void {
+		self::$includePath = get_include_path();
+		set_include_path(self::INCLUDE_PATH);
+	}
+
+	#[AfterClass]
+	public static function afterClass(): void {
+		set_include_path(self::$includePath);
 	}
 }

@@ -6,6 +6,8 @@ use ReflectionFunction;
 use stdClass;
 use function array_filter;
 use function array_key_exists;
+use function array_search;
+use function explode;
 use function is_array;
 use function is_callable;
 use function is_int;
@@ -14,9 +16,12 @@ use function is_object;
 use function is_resource;
 use function is_string;
 use function join;
+use function get_include_path;
 use function get_object_vars;
 use function get_resource_id;
 use function get_resource_type;
+use function preg_replace;
+use function set_include_path;
 use function sizeof;
 use function spl_object_id;
 use function str_repeat;
@@ -24,6 +29,8 @@ use function str_split;
 use function strlen;
 use function trim;
 use function var_export;
+use const DIRECTORY_SEPARATOR;
+use const PATH_SEPARATOR;
 use const PHP_INT_MAX;
 
 /**
@@ -85,6 +92,126 @@ function dump(mixed $value, string $indent = "\t", int $depth = 0): string {
  */
 function function_track(callable $f): CallTracker {
 	return new CallTracker($f);
+}
+
+/**
+ * Add a path to the end of the include_path. Do nothing if the path is already contained in the include_path.
+ * @param string $path Path to append.
+ * @return bool `true` if the addition succeeded.
+ * ```php
+ * get_include_path(); // '.;C:\\php\\pear'
+ * include_path_append('another/path');
+ * get_include_path(); // '.;C:\\php\\pear;another\\path'
+ * ```
+ */
+function include_path_append(string $path): bool {
+	$includePath = get_include_path();
+	return include_path_has($path) || $includePath !== false && !!set_include_path($includePath . PATH_SEPARATOR . path_normalize($path));
+}
+
+/**
+ * Delete a given path from the include_path. Do nothing if the path is not contained in the include_path.
+ * @param string $path Path to delete.
+ * @return bool `true` if the deletion succeeded.
+ * ```php
+ * get_include_path(); // '.;C:\\php\\pear'
+ * include_path_delete('.');
+ * get_include_path(); // 'C:\\php\\pear'
+ * ```
+ */
+function include_path_delete(string $path): bool {
+	$index = include_path_index($path);
+	return include_path_set($index, null);
+}
+
+/**
+ * Return a path by the provided index.
+ * @param int $index Index to return a path by.
+ * @return null|string Path at the index or `null` if there is no paths at the index.
+ * ```php
+ * get_include_path();  // '.;C:\\php\\pear'
+ * include_path_get(0); // '.'
+ * ```
+ */
+function include_path_get(int $index): ?string {
+	return @include_path_list()[$index];
+}
+
+/**
+ * Check if the provided path is contained in the include_path.
+ * @param string $path Path to check the existance of.
+ * @return bool `true` if the path is contained in the include_path.
+ * ```php
+ * get_include_path();    // '.;C:\\php\\pear'
+ * include_path_has('.'); // true
+ * ```
+ */
+function include_path_has(string $path): bool {
+	return include_path_index($path) >= 0;
+}
+
+/**
+ * Get the index of a provided path that's contained in the include_path.
+ * @param string $path Path to return the index of.
+ * @return int An index or -1 of the path is not contained in the include_path.
+ * ```php
+ * get_include_path();      // '.;C:\\php\\pear'
+ * include_path_index('.'); // 0
+ * ```
+ */
+function include_path_index(string $path): int {
+	$result = array_search(path_normalize($path), include_path_list());
+	return $result === false ? -1 : $result;
+}
+
+/**
+ * Return an array of paths contained in the include_path.
+ * @return string[] Array of paths in the include_path.
+ * ```php
+ * get_include_path();  // '.;C:\\php\\pear'
+ * include_path_list(); // ['.', 'C:\\php\\pear']
+ * ```
+ */
+function include_path_list(): array {
+	$includePath = get_include_path();
+	return $includePath ? explode(PATH_SEPARATOR, $includePath) : [];
+}
+
+/**
+ * Add a path to the beginning of the include_path. Do nothing if the path is already contained in the include_path.
+ * @param string $path Path to prepend.
+ * @return bool `true` if the addition succeeded.
+ * ```php
+ * get_include_path(); // '.;C:\\php\\pear'
+ * include_path_prepend('another/path');
+ * get_include_path(); // 'another\\path;.;C:\\php\\pear'
+ * ```
+ */
+function include_path_prepend(string $path): bool {
+	$includePath = get_include_path();
+	return include_path_has($path) || $includePath !== false && !!set_include_path(path_normalize($path) . PATH_SEPARATOR . $includePath);
+}
+
+/**
+ * Set or unset a path by the given index.
+ * @param int $index Index to delete at.
+ * @param null|string $path New value or `null` to delete a value.
+ * @return bool `true` if deletion succeeded.
+ * ```php
+ * get_include_path(); // '.;C:\\php\\pear'
+ * include_path_set(0, null);
+ * get_include_path(); // 'C:\\php\\pear'
+ * ```
+ */
+function include_path_set(int $index, ?string $path): bool {
+	$list = include_path_list();
+	if (!isset($list[$index]) && $path)
+		return false;
+	if ($path)
+		$list[$index] = path_normalize($path);
+	else
+		unset($list[$index]);
+	return set_include_path(join(PATH_SEPARATOR, array_filter($list, fn (?string $path): bool => $path !== null))) !== false;
 }
 
 /**
@@ -311,6 +438,10 @@ function key_first(object | iterable $var): null | int | string {
 	foreach ($var as $k => $v)
 		return $k;
 	return null;
+}
+
+function path_normalize(string $path): string {
+	return preg_replace('/[\\\\\/]+/', DIRECTORY_SEPARATOR, $path);
 }
 
 function to_array_or_object(string $type, array | object $var, int $depth): array | object {
