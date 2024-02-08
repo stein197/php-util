@@ -6,6 +6,7 @@ use ReflectionFunction;
 use stdClass;
 use function array_filter;
 use function array_key_exists;
+use function array_pop;
 use function array_search;
 use function explode;
 use function is_array;
@@ -32,6 +33,9 @@ use function var_export;
 use const DIRECTORY_SEPARATOR;
 use const PATH_SEPARATOR;
 use const PHP_INT_MAX;
+
+// TODO: merge(object | array ...$data): object | array
+// TODO: traverse(object | iterable $var, callable $f): object | iterable / traverse(object | iterable $var): Generator
 
 /**
  * Dump a variable. Basically it's the same as `var_dump()` or `var_export()`, except that this function:
@@ -260,12 +264,22 @@ function length(string | object | iterable $var): int {
  * property_exists($a, 'b'); // false
  * property_exists($o, 'a'); // true
  * property_exists($o, 'b'); // false
+ * property_exists(['a' => ['b' => ['c' => 3]]], ['a', 'b', 'c']); // true
  * ```
  */
-function property_exists(array | object $var, int | string $property): bool {
-	return is_array($var) ? array_key_exists($property, $var) : !!\property_exists($var, $property) || isset($var->{$property});
+function property_exists(array | object $var, int | string | array $property): bool {
+	$path = is_array($property) ? $property : [$property];
+	$last = array_pop($path);
+	$cur = $var;
+	foreach ($path as $name) {
+		$cur = property_get($cur, $name);
+		if (!is_struct($cur))
+			return false;
+	}
+	return is_array($cur) ? array_key_exists($last, $cur) : !!\property_exists($cur, $last) || isset($cur->{$last});
 }
 
+// TODO: Make it accept path
 /**
  * Get a property of an array or object.
  * @param array|object $var Array or object to get property value from.
@@ -302,6 +316,7 @@ function property_list(array | object $var): array {
 	return array_keys(is_array($var) ? $var : get_object_vars($var));
 }
 
+// TODO: Make it accept path
 /**
  * Set a property value for an array or object.
  * @param array|object $var Array or object to set property for.
@@ -330,6 +345,7 @@ function property_set(array | object &$var, int | string $property, mixed $value
 	}
 }
 
+// TODO: Make it accept path
 /**
  * Unset an array or object property.
  * @param array|object $var Array or object to unset a property from.

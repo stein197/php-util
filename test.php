@@ -407,6 +407,26 @@ class UtilTest extends TestCase {
 		$this->assertTrue(property_exists(['a', 'b', 'c'], 1));
 	}
 
+	#[Test]
+	public function property_exists_should_return_false_when_property_is_path_and_single_and_does_not_exist(): void {
+		$this->assertFalse(property_exists(['a', 'b', 'c'], [4]));
+	}
+
+	#[Test]
+	public function property_exists_should_return_true_when_property_is_path_and_single_and_exists(): void {
+		$this->assertTrue(property_exists(['a', 'b', 'c'], [0]));
+	}
+
+	#[Test]
+	public function property_exists_should_return_false_when_property_is_path_and_path_does_not_exist(): void {
+		$this->assertFalse(property_exists(['a', 'b', 'c'], [0, 'a']));
+	}
+
+	#[Test]
+	public function property_exists_should_return_true_when_property_is_path_and_path_exists(): void {
+		$this->assertTrue(property_exists(['a' => ['b' => ['c' => 3]]], ['a', 'b', 'c']));
+	}
+
 	#endregion
 
 	#region property_get()
