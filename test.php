@@ -1,6 +1,7 @@
 <?php
 namespace Stein197\Util;
 
+use Countable;
 use Iterator;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\AfterClass;
@@ -333,6 +334,15 @@ class UtilTest extends TestCase {
 	#[Test]
 	public function length_when_is_iterable(): void {
 		$this->assertEquals(3, length($this->getIterableForIterate(3)));
+	}
+
+	#[Test]
+	public function length_when_is_Countable(): void {
+		$this->assertEquals(3, length(new class implements Countable {
+			public function count(): int {
+				return 3;
+			}
+		}));
 	}
 
 	#[Test]

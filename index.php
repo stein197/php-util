@@ -1,6 +1,7 @@
 <?php
 namespace Stein197\Util;
 
+use Countable;
 use Error;
 use ReflectionFunction;
 use stdClass;
@@ -234,7 +235,7 @@ function iterate(string | object | iterable $var): iterable {
 
 /**
  * Get a length of a variable. For strings it's a string length, for arrays, objects and iterables it's the amount of
- * entries.
+ * entries. For classes that implement `Countable`, returns the result of calling `count()` method.
  * @param string|object|iterable $var Variable to get length for.
  * @return int Variable length.
  * ```php
@@ -246,7 +247,7 @@ function iterate(string | object | iterable $var): iterable {
 function length(string | object | iterable $var): int {
 	return match (true) {
 		is_string($var) => strlen($var),
-		is_array($var) => sizeof($var),
+		is_array($var) || $var instanceof Countable => sizeof($var),
 		$var instanceof stdClass => sizeof((array) $var),
 		default => sizeof([...$var])
 	};
