@@ -256,7 +256,7 @@ function length(string | object | iterable $var): int {
 /**
  * Check if array or object property exists.
  * @param array|object $var Array or object to check for property existance.
- * @param int|string $property Property name.
+ * @param int|string|array $property Property name.
  * @return bool `true` if property exists.
  * ```php
  * $a = ['a' => 1];
