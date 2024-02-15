@@ -289,7 +289,7 @@ class UtilTest extends TestCase {
 		$result = [];
 		foreach (iterate($this->getIterableForIterate(3)) as $k => $v)
 			$result[$k] = $v;
-		$this->assertEquals([0, 3 => 3, 6 => 6], $result);
+		$this->assertEquals([0, 3, 6], $result);
 	}
 
 	#[Test]
@@ -477,6 +477,38 @@ class UtilTest extends TestCase {
 	public function property_get_when_the_property_is_int(): void {
 		$var = ['a', 'b', 'c'];
 		$this->assertEquals('b', property_get($var, 1));
+	}
+
+	#[Test]
+	public function property_get_should_return_a_reference(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$c = &property_get($var, ['a', 'b', 'c']);
+		$c = 0;
+		$this->assertEquals(['a' => ['b' => ['c' => 0]]], $var);
+	}
+
+	#[Test]
+	public function property_get_when_property_is_an_array_and_single(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$this->assertEquals(['b' => ['c' => 3]], property_get($var, ['a']));
+	}
+
+	#[Test]
+	public function property_get_when_property_is_an_array_and_exists(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$this->assertEquals(3, property_get($var, ['a', 'b', 'c']));
+	}
+
+	#[Test]
+	public function property_get_when_property_is_an_array_and_does_not_exist(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$this->assertNull(property_get($var, ['a', 'B']));
+	}
+
+	#[Test]
+	public function property_get_when_property_is_an_array_and_empty(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$this->assertEquals($var, property_get($var, []));
 	}
 
 	#endregion
@@ -807,7 +839,7 @@ class UtilTest extends TestCase {
 				return $this->i * $this->steps;
 			}
 			public function key(): mixed {
-				return $this->current();
+				return $this->i;
 			}
 			public function next(): void {
 				$this->i++;

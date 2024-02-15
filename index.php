@@ -248,7 +248,7 @@ function length(string | object | iterable $var): int {
 	return match (true) {
 		is_string($var) => strlen($var),
 		is_array($var) || $var instanceof Countable => sizeof($var),
-		$var instanceof stdClass => sizeof((array) $var),
+		is_object($var) && !is_iterable($var) => sizeof((array) $var),
 		default => sizeof([...$var])
 	};
 }
@@ -271,37 +271,30 @@ function length(string | object | iterable $var): int {
 function property_exists(array | object $var, int | string | array $property): bool {
 	$path = is_array($property) ? $property : [$property];
 	$last = array_pop($path);
-	$cur = $var;
-	foreach ($path as $name) {
-		$cur = property_get($cur, $name);
-		if (!is_struct($cur))
-			return false;
-	}
+	$cur = &property_get($var, $path);
 	return is_array($cur) ? array_key_exists($last, $cur) : !!\property_exists($cur, $last) || isset($cur->{$last});
 }
 
-// TODO: Make it accept path
 /**
  * Get a property of an array or object.
  * @param array|object $var Array or object to get property value from.
- * @param int|string $property Property name.
+ * @param int|string|array $property Property name.
  * @return mixed Property value or null if the property does not exist.
  * ```php
- * property_get(['a' => 1], 'a');          // 1
- * property_get((object) ['a' => 1], 'a'); // 1
+ * property_get(['a' => 1], 'a');                 // 1
+ * property_get((object) ['a' => 1], 'a');        // 1
+ * property_get(['a' => ['b' => 2]], ['a', 'b']); // 2
  * ```
  */
-function property_get(array | object &$var, int | string $property): mixed {
-	if (is_array($var))
-		if (property_exists($var, $property))
-			return $var[$property];
-		else
+function &property_get(array | object &$var, int | string | array $property): mixed {
+	$path = is_array($property) ? $property : [$property];
+	$cur = &$var;
+	foreach ($path as $name) {
+		if (!is_struct($cur))
 			return null;
-	try {
-		return @$var->{$property};
-	} catch (Error) {
-		return null;
+		$cur = &property_take($cur, $name);
 	}
+	return $cur;
 }
 
 /**
@@ -381,7 +374,7 @@ function property_unset(array | object &$var, int | string $property): bool {
  * ```
  */
 function to_array(array | object $var, int $depth = PHP_INT_MAX): array {
-	return to_array_or_object('array', $var, $depth);
+	return to_struct('array', $var, $depth);
 }
 
 /**
@@ -394,7 +387,7 @@ function to_array(array | object $var, int $depth = PHP_INT_MAX): array {
  * ```
  */
 function to_object(array | object $var, int $depth = PHP_INT_MAX): object {
-	return to_array_or_object('object', $var, $depth);
+	return to_struct('object', $var, $depth);
 }
 
 /**
@@ -407,12 +400,12 @@ function to_object(array | object $var, int $depth = PHP_INT_MAX): object {
 function var_clone(mixed $var, int $depth = PHP_INT_MAX): mixed {
 	if ($depth <= 0)
 		return $var;
-	if (!is_struct($var))
+	if (!is_array($var) && !($var instanceof stdClass))
 		return is_object($var) ? clone $var : $var;
-	$depthNext = $depth - 1;
+	$depth--;
 	$result = is_array($var) ? [] : new stdClass;
 	foreach ($var as $k => $v)
-		property_set($result, $k, var_clone($v, $depthNext));
+		property_set($result, $k, var_clone($v, $depth));
 	return $result;
 }
 
@@ -448,7 +441,7 @@ function var_equals(mixed $a, mixed $b, bool $strict = false): bool {
 // PRIVATE FUNCTIONS
 
 function is_struct(mixed $var): bool {
-	return is_array($var) || $var instanceof stdClass;
+	return is_array($var) || is_object($var);
 }
 
 function key_first(object | iterable $var): null | int | string {
@@ -461,13 +454,23 @@ function path_normalize(string $path): string {
 	return preg_replace('/[\\\\\/]+/', DIRECTORY_SEPARATOR, $path);
 }
 
-function to_array_or_object(string $type, array | object $var, int $depth): array | object {
+function &property_take(array | object &$var, int | string $property): mixed {
+	if (is_array($var))
+		return $var[$property];
+	try {
+		return $var->{$property};
+	} catch (Error) {
+		return null;
+	}
+}
+
+function to_struct(string $type, array | object $var, int $depth): array | object {
 	if ($depth < 1)
 		$depth = 1;
 	$result = $type === 'array' ? [] : new stdClass;
 	$entries = is_array($var) ? $var : get_object_vars($var);
 	$nextDepth = $depth - 1;
 	foreach ($entries as $k => $v)
-		property_set($result, $k, (is_array($v) || is_object($v)) && $depth > 1 ? to_array_or_object($type, $v, $nextDepth) : $v);
+		property_set($result, $k, (is_array($v) || is_object($v)) && $depth > 1 ? to_struct($type, $v, $nextDepth) : $v);
 	return $result;
 }
