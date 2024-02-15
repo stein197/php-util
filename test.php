@@ -8,6 +8,8 @@ use PHPUnit\Framework\Attributes\AfterClass;
 use PHPUnit\Framework\Attributes\BeforeClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use stdClass;
+
 use function array_shift;
 use function fopen;
 use function fclose;
@@ -631,7 +633,6 @@ class UtilTest extends TestCase {
 
 	#[Test]
 	public function property_list_unflat_should_return_an_stdClass_when_the_list_is_flat_and_isArray_is_falst(): void {
-		$this->markTestIncomplete();
 		$var = property_list_unflat([
 			[['a'], 1],
 			[['b'], 2],
@@ -644,7 +645,6 @@ class UtilTest extends TestCase {
 
 	#[Test]
 	public function property_list_unflat_should_return_an_stdClass_when_the_list_is_nested_and_isArray_is_falst(): void {
-		$this->markTestIncomplete();
 		$var = property_list_unflat([
 			[['a', 'b', 'c'], 3],
 			[['a', 'd'], 4]
@@ -707,6 +707,62 @@ class UtilTest extends TestCase {
 		$var = ['a', 'b', 'c'];
 		$this->assertTrue(property_set($var, 1, 'B'));
 		$this->assertEquals(['a', 'B', 'c'], $var);
+	}
+
+	#[Test]
+	public function property_set_when_property_is_path_and_single(): void {
+		$var = ['a' => 1];
+		$this->assertTrue(property_set($var, ['a'], 10));
+		$this->assertEquals(10, $var['a']);
+	}
+
+	#[Test]
+	public function property_set_when_property_is_path_and_exists(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$this->assertTrue(property_set($var, ['a', 'b', 'c'], 30));
+		$this->assertEquals(30, $var['a']['b']['c']);
+	}
+
+	#[Test]
+	public function property_set_should_create_items_when_property_is_path_and_does_not_exist_and_isArray_true(): void {
+		$var = [];
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, true));
+		$this->assertEquals(['a' => ['b' => 2]], $var);
+		$var = new stdClass;
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, true));
+		$this->assertEquals(['b' => 2], $var->a);
+	}
+
+	#[Test]
+	public function property_set_should_create_items_when_property_is_path_and_does_not_exist_and_isArray_false(): void {
+		$var = [];
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, false));
+		$this->assertEquals(2, $var['a']->b);
+		$var = new stdClass;
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, false));
+		$this->assertEquals(2, $var->a->b);
+	}
+
+	#[Test]
+	public function property_set_should_override_items_when_property_is_path_and_does_not_exist_and_isArray_true(): void {
+		$var = ['a' => 'string'];
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, true));
+		$this->assertEquals(['a' => ['b' => 2]], $var);
+		$var = new stdClass;
+		$var->a = 'string';
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, true));
+		$this->assertEquals(['b' => 2], $var->a);
+	}
+
+	#[Test]
+	public function property_set_should_override_items_when_property_is_path_and_does_not_exist_and_isArray_false(): void {
+		$var = ['a' => 'string'];
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, false));
+		$this->assertEquals(2, $var['a']->b);
+		$var = new stdClass;
+		$var->a = 'string';
+		$this->assertTrue(property_set($var, ['a', 'b'], 2, false));
+		$this->assertEquals(2, $var->a->b);
 	}
 
 	#endregion

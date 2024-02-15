@@ -350,16 +350,16 @@ function property_list_flat(array | object $var): array {
 function property_list_unflat(array $list, bool $isArray = true): array | object {
 	$result = $isArray ? [] : new stdClass;
 	foreach ($list as [$path, $value])
-		property_set($result, $path, $value);
+		property_set($result, $path, $value, $isArray);
 	return $result;
 }
 
-// TODO: Make it accept path
 /**
  * Set a property value for an array or object.
  * @param array|object $var Array or object to set property for.
- * @param int|string $property Property name.
+ * @param int|string|array $property Property name.
  * @param mixed $value Property value.
+ * @param bool $isArray Create arrays for yet nonexistent properties when `true`, create `stdClass` otherwise.
  * @return bool `true` if the operation is succeeded, `false` otherwise.
  * ```php
  * $a = [];
@@ -370,17 +370,19 @@ function property_list_unflat(array $list, bool $isArray = true): array | object
  * $o; // {a: 1}
  * ```
  */
-function property_set(array | object &$var, int | string $property, mixed $value): bool {
-	if (is_array($var)) {
-		$var[$property] = $value;
-		return $var[$property] === $value;
+function property_set(array | object &$var, int | string | array $property, mixed $value, bool $isArray = true): bool {
+	$path = is_array($property) ? $property : [$property];
+	$last = array_pop($path);
+	$cur = &$var;
+	foreach ($path as $name) {
+		$tmp = &property_take($cur, $name);
+		if (!is_struct($tmp)) {
+			property_apply($cur, $name, $isArray ? [] : new stdClass);
+			$tmp = &property_take($cur, $name);
+		}
+		$cur = &$tmp;
 	}
-	try {
-		$var->{$property} = $value;
-		return $var->{$property} === $value;
-	} catch (Error) {
-		return false;
-	}
+	return property_apply($cur, $last, $value);
 }
 
 // TODO: Make it accept path
@@ -496,6 +498,19 @@ function key_first(object | iterable $var): null | int | string {
 
 function path_normalize(string $path): string {
 	return preg_replace('/[\\\\\/]+/', DIRECTORY_SEPARATOR, $path);
+}
+
+function property_apply(array | object &$var, int | string $property, mixed $value): bool {
+	if (is_array($var)) {
+		$var[$property] = $value;
+		return $var[$property] === $value;
+	}
+	try {
+		$var->{$property} = $value;
+		return $var->{$property} === $value;
+	} catch (Error) {
+		return false;
+	}
 }
 
 function &property_take(array | object &$var, int | string $property): mixed {
