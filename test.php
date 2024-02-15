@@ -814,6 +814,27 @@ class UtilTest extends TestCase {
 		$this->assertEquals(['a', 2 => 'c'], $var);
 	}
 
+	#[Test]
+	public function property_unset_should_do_nothing_when_property_is_path_and_not_exists(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$this->assertTrue(property_unset($var, ['a', 'b', 'd']));
+		$this->assertEquals(['a' => ['b' => ['c' => 3]]], $var);
+	}
+
+	#[Test]
+	public function property_unset_should_unset_when_property_is_path_and_single(): void {
+		$var = ['a' => 1, 'b' => 2, 'c' => 3];
+		$this->assertTrue(property_unset($var, ['a']));
+		$this->assertEquals(['b' => 2, 'c' => 3], $var);
+	}
+
+	#[Test]
+	public function property_unset_should_unset_when_property_is_path_and_exists(): void {
+		$var = ['a' => ['b' => ['c' => 3]]];
+		$this->assertTrue(property_unset($var, ['a', 'b', 'c']));
+		$this->assertEquals(['a' => ['b' => []]], $var);
+	}
+
 	#endregion
 
 	#region to_array()

@@ -385,11 +385,10 @@ function property_set(array | object &$var, int | string | array $property, mixe
 	return property_apply($cur, $last, $value);
 }
 
-// TODO: Make it accept path
 /**
  * Unset an array or object property.
  * @param array|object $var Array or object to unset a property from.
- * @param int|string $property Property name.
+ * @param int|string|array $property Property name.
  * @return bool `true` if the operation succeeded.
  * ```php
  * $a = ['a' => 1];
@@ -398,12 +397,15 @@ function property_set(array | object &$var, int | string | array $property, mixe
  * property_unset($o, 'a'); // true
  * ```
  */
-function property_unset(array | object &$var, int | string $property): bool {
-	if (is_array($var))
-		unset($var[$property]);
+function property_unset(array | object &$var, int | string | array $property): bool {
+	$path = is_array($property) ? $property : [$property];
+	$last = array_pop($path);
+	$cur = &property_get($var, $path);
+	if (is_array($cur))
+		unset($cur[$last]);
 	else
 		try {
-			unset($var->{$property});
+			unset($cur->{$last});
 		} catch (Error) {
 			return false;
 		}
