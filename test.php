@@ -537,6 +537,124 @@ class UtilTest extends TestCase {
 
 	#endregion
 
+	#region property_list_flat()
+
+	#[Test]
+	public function property_list_flat_should_return_an_empty_array_when_the_struct_is_empty(): void {
+		$this->assertEmpty(property_list_flat([]));
+		$this->assertEmpty(property_list_flat((object) []));
+	}
+
+	#[Test]
+	public function property_list_flat_when_the_struct_is_flat(): void {
+		$this->assertEquals([
+			[['a'], 1],
+			[['b'], 2],
+			[['c'], 3]
+		], property_list_flat(['a' => 1, 'b' => 2, 'c' => 3]));
+		$this->assertEquals([
+			[['a'], 1],
+			[['b'], 2],
+			[['c'], 3]
+		], property_list_flat((object) ['a' => 1, 'b' => 2, 'c' => 3]));
+	}
+
+	#[Test]
+	public function property_list_flat_when_the_struct_is_nested(): void {
+		$this->assertEquals([
+			[['a', 'b0'], 0],
+			[['a', 'b1', 'c'], 3],
+			[['a', 'b2'], 2]
+		], property_list_flat(['a' => ['b0' => 0, 'b1' => ['c' => 3], 'b2' => 2]]));
+		$this->assertEquals([
+			[['a', 'b0'], 0],
+			[['a', 'b1', 'c'], 3],
+			[['a', 'b2'], 2]
+		], property_list_flat((object) ['a' => (object) ['b0' => 0, 'b1' => ['c' => 3], 'b2' => 2]]));
+	}
+
+	#[Test]
+	public function property_list_flat_when_the_struct_is_an_arraylist(): void {
+		$this->assertEquals([
+			[[0], 'a'],
+			[[1], 'b'],
+			[[2, 0], 'c'],
+			[[2, 1, 0], 'd']
+		], property_list_flat(['a', 'b', ['c', ['d']]]));
+	}
+
+	#endregion
+
+	#region property_list_unflat()
+
+	#[Test]
+	public function property_list_unflat_should_return_an_empty_array_when_the_list_is_empty(): void {
+		$this->assertEmpty(property_list_unflat([]));
+	}
+
+	#[Test]
+	public function property_list_unflat_should_return_an_array_when_the_list_is_flat_and_isArray_is_true(): void {
+		$this->assertEquals([
+			'a' => 1,
+			'b' => 2,
+			'c' => 3
+		], property_list_unflat([
+			[['a'], 1],
+			[['b'], 2],
+			[['c'], 3]
+		], true));
+	}
+
+	#[Test]
+	public function property_list_unflat_should_return_an_array_when_the_list_is_nested_and_isArray_is_true(): void {
+		$this->assertEquals([
+			'a' => [
+				'b' => [
+					'c' => 3
+				],
+				'd' => 4
+			]
+		], property_list_unflat([
+			[['a', 'b', 'c'], 3],
+			[['a', 'd'], 4]
+		], true));
+	}
+
+	#[Test]
+	public function property_list_unflat_should_return_an_array_when_the_list_contains_ints_and_isArray_is_true(): void {
+		$this->assertEquals(['a', ['b', ['c']]], property_list_unflat([
+			[[0], 'a'],
+			[[1, 0], 'b'],
+			[[1, 1, 0], 'c']
+		], true));
+	}
+
+	#[Test]
+	public function property_list_unflat_should_return_an_stdClass_when_the_list_is_flat_and_isArray_is_falst(): void {
+		$this->markTestIncomplete();
+		$var = property_list_unflat([
+			[['a'], 1],
+			[['b'], 2],
+			[['c'], 3]
+		], false);
+		$this->assertEquals(1, $var->a);
+		$this->assertEquals(2, $var->b);
+		$this->assertEquals(3, $var->c);
+	}
+
+	#[Test]
+	public function property_list_unflat_should_return_an_stdClass_when_the_list_is_nested_and_isArray_is_falst(): void {
+		$this->markTestIncomplete();
+		$var = property_list_unflat([
+			[['a', 'b', 'c'], 3],
+			[['a', 'd'], 4]
+		], false);
+		$this->assertEquals(3, $var->a->b->c);
+		$this->assertEquals(4, $var->a->d);
+	}
+
+	#endregion
+
 	#region property_set()
 
 	#[Test]

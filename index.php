@@ -7,7 +7,9 @@ use ReflectionFunction;
 use stdClass;
 use function array_filter;
 use function array_key_exists;
+use function array_map;
 use function array_pop;
+use function array_push;
 use function array_search;
 use function explode;
 use function is_array;
@@ -308,6 +310,48 @@ function &property_get(array | object &$var, int | string | array $property): mi
  */
 function property_list(array | object $var): array {
 	return array_keys(is_array($var) ? $var : get_object_vars($var));
+}
+
+/**
+ * Flat the provided structure. The opposite of the `property_list_unflat()`.
+ * @param array|object $var Array or object to flat.
+ * @return array An array of properties. Each array item is an array of length 2. The first element is a property path
+ *               (as an array) and the second one is the corresponding value.
+ * ```php
+ * property_list_flat(['a' => ['b' => 2, 'c' => ['d' => 4]]]);
+ * // [
+ * // 	[['a', 'b'], 2],
+ * // 	[['a', 'c', 'd'], 4]
+ * // ]
+ * ```
+ */
+function property_list_flat(array | object $var): array {
+	$result = [];
+	foreach (iterate($var) as $k => $v)
+		if (is_struct($v))
+			array_push($result, ...array_map(fn (array $item): array => [[$k, ...$item[0]], $item[1]], property_list_flat($v)));
+		else
+			$result[] = [[$k], $v];
+	return $result;
+}
+
+/**
+ * Unflat the provided list of properties. The opposite of the `property_list_flat()`.
+ * @param array $list Properties list to make a structure from.
+ * @param bool $isArray Return type. Return an array if `true` or an stdClass when `false`.
+ * @return array|object A structure from the provided properties list.
+ * ```php
+ * property_list_unflat([
+ * 	[['a', 'b'], 2],
+ * 	[['a', 'c', 'd'], 4]
+ * ], true); // ['a' => ['b' => 2, 'c' => ['d' => 4]]]
+ * ```
+ */
+function property_list_unflat(array $list, bool $isArray = true): array | object {
+	$result = $isArray ? [] : new stdClass;
+	foreach ($list as [$path, $value])
+		property_set($result, $path, $value);
+	return $result;
 }
 
 // TODO: Make it accept path
