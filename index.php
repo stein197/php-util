@@ -5,6 +5,7 @@ use Countable;
 use Error;
 use ReflectionFunction;
 use stdClass;
+use Stringable;
 use function array_filter;
 use function array_key_exists;
 use function array_map;
@@ -16,6 +17,7 @@ use function is_array;
 use function is_callable;
 use function is_int;
 use function is_iterable;
+use function is_numeric;
 use function is_object;
 use function is_resource;
 use function is_string;
@@ -28,6 +30,7 @@ use function preg_replace;
 use function set_include_path;
 use function sizeof;
 use function spl_object_id;
+use function strnatcmp;
 use function str_repeat;
 use function str_split;
 use function strlen;
@@ -39,6 +42,28 @@ use const PHP_INT_MAX;
 
 // TODO: merge(object | array ...$data): object | array
 // TODO: traverse(object | iterable $var, callable $f): object | iterable / traverse(object | iterable $var): Generator
+
+/**
+ * Compare the given variables. Compare numbers (int, float), strings and objects that implement the intefaces
+ * `Stringable`, `Comparable`.
+ * interface.
+ * @param mixed $a The first variable to compare.
+ * @param mixed $b The second variable to compare.
+ * @return int -1 if `$a` < `$b`, 1 if `$a` > `$b`, 0 otherwise. 0 for variables that cannot be compared implicitly.
+ * ```php
+ * compare(1, 2);                 // -1
+ * compare('string2', 'string1'); // 1
+ * ```
+ */
+function compare(mixed $a, mixed $b): int {
+	if (is_numeric($a) && is_numeric($b))
+		return $a === $b ? 0 : ($a < $b ? -1 : 1);
+	if (is_string($a) && is_string($b) || $a instanceof Stringable && $b instanceof Stringable)
+		return strnatcmp($a, $b);
+	$isAComparable = $a instanceof Comparable;
+	$isBComparable = $b instanceof Comparable;
+	return $isAComparable || $isBComparable ? ($isAComparable ? $a->compare($b) : $b->compare($a)) : 0;
+}
 
 /**
  * Dump a variable. Basically it's the same as `var_dump()` or `var_export()`, except that this function:

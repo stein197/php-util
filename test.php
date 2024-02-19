@@ -34,6 +34,71 @@ class UtilTest extends TestCase {
 	public function after(): void {
 		set_include_path(self::INCLUDE_PATH);
 	}
+
+	#region compare()
+
+	#[Test]
+	public function compare_when_the_arguments_are_ints(): void {
+		$this->assertEquals(-1, compare(1, 2));
+		$this->assertEquals(0, compare(2, 2));
+		$this->assertEquals(1, compare(2, 1));
+	}
+
+	#[Test]
+	public function compare_when_the_arguments_are_floats(): void {
+		$this->assertEquals(-1, compare(1.5, 2));
+		$this->assertEquals(0, compare(2.5, 2.5));
+		$this->assertEquals(1, compare(2.5, 1));
+	}
+
+	#[Test]
+	public function compare_when_the_arguments_are_strings(): void {
+		$this->assertEquals(-1, compare('Name 01', 'Name 10'));
+		$this->assertEquals(0, compare('Name 10', 'Name 10'));
+		$this->assertEquals(1, compare('Name 10', 'Name 01'));
+	}
+
+	#[Test]
+	public function compare_when_the_arguments_are_stringable(): void {
+		$createStringable = fn (string ...$data): Stringable => new class (...$data) implements Stringable {
+			private readonly array $data;
+			public function __construct(string ...$data) {
+				$this->data = $data;
+			}
+			public function __toString(): string {
+				return join('', $this->data);
+			}
+		};
+		$a = $createStringable('A', '1', '0');
+		$b = $createStringable('A', '1', '1');
+		$this->assertEquals(-1, compare($a, $b));
+		$this->assertEquals(0, compare($a, $a));
+		$this->assertEquals(1, compare($b, $a));
+	}
+
+	#[Test]
+	public function compare_when_the_arguments_are_comparable(): void {
+		$createComparable = fn (int $x, int $y): Comparable => new class ($x, $y) implements Comparable {
+			public function __construct(public readonly int $x, public readonly int $y) {}
+			public function compare(mixed $var): int {
+				if ($var === null || !isset($var->x) || !isset($var->y))
+					return 0;
+				return $this->x === $var->x ? $this->y - $var->y : $this->x - $var->x;
+			}
+		};
+		$a = $createComparable(1, 2);
+		$b = $createComparable(2, 3);
+		$this->assertEquals(-1, compare($a, $b));
+		$this->assertEquals(0, compare($a, $a));
+		$this->assertEquals(1, compare($b, $a));
+	}
+
+	#[Test]
+	public function compare_should_return_when_the_arguments_cannot_be_compared(): void {
+		$this->assertEquals(0, compare(null, 20));
+	}
+
+	#endregion
 	
 	#region dump()
 
