@@ -3,13 +3,13 @@ namespace Stein197\Util;
 
 use Countable;
 use Iterator;
+use stdClass;
+use Stringable;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\AfterClass;
 use PHPUnit\Framework\Attributes\BeforeClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use stdClass;
-
 use function array_shift;
 use function fopen;
 use function fclose;
@@ -467,6 +467,182 @@ class UtilTest extends TestCase {
 
 	#endregion
 
+	#region number_clamp()
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_positive_and_overflow_is_false_and_value_is_between(): void {
+		$this->assertEquals(7, number_clamp(5, 10, false, 7));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_positive_and_overflow_is_false_and_value_is_beyond_min(): void {
+		$this->assertEquals(5, number_clamp(5, 10, false, 3));
+
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_positive_and_overflow_is_false_and_value_is_beyond_max(): void {
+		$this->assertEquals(10, number_clamp(5, 10, false, 12));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_positive_and_overflow_is_true_and_value_is_between(): void {
+		$this->assertEquals(7, number_clamp(5, 10, true, 7));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_positive_and_overflow_is_true_and_value_is_beyond_min(): void {
+		$this->assertEquals(9, number_clamp(5, 10, true, 3));
+		$this->assertEquals(9, number_clamp(5, 10, true, -3));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_positive_and_overflow_is_true_and_value_is_beyond_max(): void {
+		$this->assertEquals(6, number_clamp(5, 10, true, 12));
+		$this->assertEquals(6, number_clamp(5, 10, true, 18));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_negative_and_overflow_is_false_and_value_is_between(): void {
+		$this->assertEquals(-7, number_clamp(-10, -5, false, -7));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_negative_and_overflow_is_false_and_value_is_beyond_min(): void {
+		$this->assertEquals(-10, number_clamp(-10, -5, false, -12));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_negative_and_overflow_is_false_and_value_is_beyond_max(): void {
+		$this->assertEquals(-5, number_clamp(-10, -5, false, -3));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_negative_and_overflow_is_true_and_value_is_between(): void {
+		$this->assertEquals(-7, number_clamp(-10, -5, true, -7));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_negative_and_overflow_is_true_and_value_is_beyond_min(): void {
+		$this->assertEquals(-6, number_clamp(-10, -5, true, -12));
+		$this->assertEquals(-6, number_clamp(-10, -5, true, -18));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_are_negative_and_overflow_is_true_and_value_is_beyond_max(): void {
+		$this->assertEquals(-9, number_clamp(-10, -5, true, -3));
+		$this->assertEquals(-9, number_clamp(-10, -5, true, 3));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_negative_and_max_is_positive_and_overflow_is_false_and_value_is_between(): void {
+		$this->assertEquals(0, number_clamp(-5, 5, false, 0));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_negative_and_max_is_positive_and_overflow_is_false_and_value_is_beyond_min(): void {
+		$this->assertEquals(-5, number_clamp(-5, 5, false, -12));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_negative_and_max_is_positive_and_overflow_is_false_and_value_is_beyond_max(): void {
+		$this->assertEquals(5, number_clamp(-5, 5, false, 12));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_negative_and_max_is_positive_and_overflow_is_true_and_value_is_between(): void {
+		$this->assertEquals(0, number_clamp(-5, 5, true, 0));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_negative_and_max_is_positive_and_overflow_is_true_and_value_is_beyond_min(): void {
+		$this->assertEquals(4, number_clamp(-5, 5, true, -7));
+		$this->assertEquals(4, number_clamp(-5, 5, true, -13));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_negative_and_max_is_positive_and_overflow_is_true_and_value_is_beyond_max(): void {
+		$this->assertEquals(-4, number_clamp(-5, 5, true, 7));
+		$this->assertEquals(-4, number_clamp(-5, 5, true, 13));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_positive_and_max_is_negative_and_overflow_is_false_and_value_is_between(): void {
+		$this->assertEquals(0, number_clamp(5, -5, false, 0));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_positive_and_max_is_negative_and_overflow_is_false_and_value_is_beyond_min(): void {
+		$this->assertEquals(5, number_clamp(5, -5, false, 10));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_positive_and_max_is_negative_and_overflow_is_false_and_value_is_beyond_max(): void {
+		$this->assertEquals(-5, number_clamp(5, -5, false, 0));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_positive_and_max_is_negative_and_overflow_is_true_and_value_is_between(): void {
+		$this->assertEquals(0, number_clamp(5, -5, true, 0));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_positive_and_max_is_negative_and_overflow_is_true_and_value_is_beyond_min(): void {
+		$this->assertEquals(-1, number_clamp(5, -5, true, 10));
+		$this->assertEquals(-1, number_clamp(5, -5, true, 21));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_positive_and_max_is_negative_and_overflow_is_true_and_value_is_beyond_max(): void {
+		$this->assertEquals(1, number_clamp(5, -5, true, -10));
+		$this->assertEquals(1, number_clamp(5, -5, true, -21));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_greater_than_max_and_overflow_is_false_and_value_is_between(): void {
+		$this->assertEquals(3, number_clamp(5, 2, false, 3));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_greater_than_max_and_overflow_is_false_and_value_is_beyond_min(): void {
+		$this->assertEquals(5, number_clamp(5, 2, false, 10));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_greater_than_max_and_overflow_is_false_and_value_is_beyond_max(): void {
+		$this->assertEquals(2, number_clamp(5, 2, false, 0));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_greater_than_max_and_overflow_is_true_and_value_is_between(): void {
+		$this->assertEquals(3, number_clamp(5, 2, true, 3));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_greater_than_max_and_overflow_is_true_and_value_is_beyond_min(): void {
+		$this->assertEquals(4, number_clamp(5, 2, true, 8));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_is_greater_than_max_and_overflow_is_true_and_value_is_beyond_max(): void {
+		$this->assertEquals(4, number_clamp(5, 2, true, 0));
+	}
+
+	#[Test]
+	public function number_clamp_when_overflow_is_true_and_min_max_value_are_float(): void {
+		$this->assertEquals(5.4, number_clamp(5.3, 9.9, true, 10));
+	}
+
+	#[Test]
+	public function number_clamp_when_min_and_max_the_same(): void {
+		$this->assertEquals(5, number_clamp(5, 5, false, 0));
+		$this->assertEquals(5, number_clamp(5, 5, true, 0));
+		$this->assertEquals(-5, number_clamp(-5, -5, false, 0));
+		$this->assertEquals(-5, number_clamp(-5, -5, true, 0));
+	}
+
+	#endregion
+
 	#region property_exists()
 
 	#[Test]
@@ -864,7 +1040,7 @@ class UtilTest extends TestCase {
 	}
 
 	#endregion
-	
+
 	#region property_unset()
 
 	#[Test]
@@ -952,7 +1128,7 @@ class UtilTest extends TestCase {
 		$c = (object) ['c' => 3];
 		$this->assertEquals(['a' => ['b' => $c]], to_array((object) ['a' => (object) ['b' => $c]], 2));
 	}
-	
+
 	#[Test]
 	public function to_array_should_set_depth_to_1_when_it_is_less_than_1(): void {
 		$c = (object) ['c' => 3];
@@ -982,7 +1158,7 @@ class UtilTest extends TestCase {
 	public function to_object_should_stop_at_specified_depth(): void {
 		$this->assertEquals(3, to_object(['a' => ['b' => ['c' => 3]]], 2)->a->b['c']);
 	}
-	
+
 	#[Test]
 	public function to_object_should_set_depth_to_1_when_it_is_less_than_1(): void {
 		$this->assertEquals(['b' => ['c' => 3]], to_object(['a' => ['b' => ['c' => 3]]], -1)->a);

@@ -299,6 +299,33 @@ function length(string | object | iterable $var): int {
 }
 
 /**
+ * Clamp the passed number so it will be between `$min` and `$max`.
+ * @param int|float $min The min threshold.
+ * @param int|float $max The max threshold.
+ * @param bool $overflow Clamping strategy. When `false`, an overflowing value will be either `$min` or `$max` (if the
+ *                       value is behind the min or max respectively). If `true`, `$min + $value % ($max - $min)` will
+ *                       be returned.
+ * @param int|float $value Value to clamp.
+ * @return int|float Clamped value.
+ * ```php
+ * number_clamp(5, 10, false, 2); // 5
+ * number_clamp(5, 10, true, 12); // 6
+ * ```
+ */
+function number_clamp(int | float $min, int | float $max, bool $overflow, int | float $value): int | float {
+	[$min, $max] = [min($min, $max), max($min, $max)];
+	$valid = $min <= $value && $value <= $max;
+	if ($valid)
+		return $value;
+	if (!$overflow)
+		return $value < $min ? $min : $max;
+	$diff = $max - $min;
+	while ($value > $diff)
+		$value -= $diff;
+	return $min + $value;
+}
+
+/**
  * Check if array or object property exists.
  * @param array|object $var Array or object to check for property existance.
  * @param int|string|array $property Property name.

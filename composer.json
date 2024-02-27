@@ -19,6 +19,7 @@
         "test:include_path_set": "phpunit test.php --filter ::include_path_set_",
         "test:iterate": "phpunit test.php --filter ::iterate_",
         "test:length": "phpunit test.php --filter ::length_",
+        "test:number_clamp": "phpunit test.php --filter ::number_clamp_",
         "test:property_exists": "phpunit test.php --filter ::property_exists_",
         "test:property_get": "phpunit test.php --filter ::property_get_",
         "test:property_list": "phpunit test.php --filter ::property_list_",
