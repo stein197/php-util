@@ -112,6 +112,24 @@ function dump(mixed $value, string $indent = "\t", int $depth = 0): string {
 }
 
 /**
+ * Perform carrying.
+ * @param callable $f Function to curry.
+ * @param array $args Arguments to apply.
+ * @return callable Carried function.
+ * ```php
+ * function add(int $a, int $b): int {
+ * 	return $a + $b;
+ * }
+ * $addWith10 = function_curry(add(...), 10);
+ * $addWith10(2);  // 12
+ * $addWith10(12); // 22
+ * ```
+ */
+function function_curry(callable $f, mixed ...$args): callable {
+	return fn (mixed ...$data): mixed => $f(...$args, ...$data);
+}
+
+/**
  * Track function calls - inputs and outputs.
  * @param callable $f Function to track.
  * @return CallTracker Tracked function.

@@ -29,7 +29,7 @@ class UtilTest extends TestCase {
 	private const INCLUDE_PATH = '.' . PATH_SEPARATOR . __DIR__;
 
 	private static string $includePath = '';
-	
+
 	#[After]
 	public function after(): void {
 		set_include_path(self::INCLUDE_PATH);
@@ -99,7 +99,7 @@ class UtilTest extends TestCase {
 	}
 
 	#endregion
-	
+
 	#region dump()
 
 	#[Test]
@@ -191,6 +191,39 @@ class UtilTest extends TestCase {
 	#[Test]
 	public function dump_when_complex_nested_structure(): void {
 		$this->markTestIncomplete();
+	}
+
+	#endregion
+
+	#region function_curry()
+
+	#[Test]
+	public function function_curry_when_no_arguments(): void {
+		$f = fn ($a, $b, $c) => $a + $b + $c;
+		$f0 = function_curry($f);
+		$this->assertEquals(60, $f0(10, 20, 30));
+	}
+
+	#[Test]
+	public function function_curry_when_there_are_arguments(): void {
+		$f = fn ($a, $b, $c) => $a + $b + $c;
+		$f0 = function_curry($f, 10);
+		$f1 = function_curry($f, 10, 20);
+		$this->assertEquals(60, $f0(20, 30));
+		$this->assertEquals(60, $f1(30));
+	}
+
+	#[Test]
+	public function function_curry_when_this_is_binded(): void {
+		$obj = new class {
+			public function f(int $a, string $b): array {
+				return [$a + $a, $b . $b, $this];
+			}
+		};
+		$f = function_curry($obj->f(...), 10, 'string');
+		$this->assertEquals(20, $f()[0]);
+		$this->assertEquals('stringstring', $f()[1]);
+		$this->assertEquals($obj, $f()[2]);
 	}
 
 	#endregion
