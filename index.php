@@ -269,9 +269,9 @@ function include_path_set(int $index, ?string $path): bool {
  * @param string|object|iterable $var Variable to iterate through.
  * @return iterable Iterable.
  * ```php
- * foreach (iterator('abc') as $i => $c);
- * foreach (iterator(['a', 'b', 'c']) as $i => $c);
- * foreach (iterator((object) ['a' => 1, 'b' => 2, 'c' => 3]) as $key => $val);
+ * foreach (iterate('abc') as $i => $c);
+ * foreach (iterate(['a', 'b', 'c']) as $i => $c);
+ * foreach (iterate((object) ['a' => 1, 'b' => 2, 'c' => 3]) as $key => $val);
  * ```
  */
 function iterate(string | object | iterable $var): iterable {
