@@ -100,6 +100,30 @@ class UtilTest extends TestCase {
 
 	#endregion
 
+	#region dir_exists()
+
+	#[Test]
+	public function dir_exists_should_return_false_when_directory_does_not_exist(): void {
+		$this->assertFalse(dir_exists('non-existent'));
+	}
+
+	#[Test]
+	public function dir_exists_should_return_false_when_path_exists_and_is_not_directory(): void {
+		$this->assertFalse(dir_exists(__FILE__));
+	}
+
+	#[Test]
+	public function dir_exists_should_return_true_when_directory_exists(): void {
+		$this->assertTrue(dir_exists(__DIR__));
+	}
+
+	#[Test]
+	public function dir_exists_when_path_contains_different_slashes(): void {
+		$this->assertTrue(dir_exists(__DIR__ . '/vendor\\bin'));
+	}
+
+	#endregion
+
 	#region dump()
 
 	#[Test]

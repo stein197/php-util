@@ -13,8 +13,10 @@ use function array_pop;
 use function array_push;
 use function array_search;
 use function explode;
+use function file_exists;
 use function is_array;
 use function is_callable;
+use function is_dir;
 use function is_int;
 use function is_iterable;
 use function is_numeric;
@@ -40,6 +42,10 @@ use const DIRECTORY_SEPARATOR;
 use const PATH_SEPARATOR;
 use const PHP_INT_MAX;
 
+// TODO: dir_delete
+// TODO: dir_list
+// TODO: dir_size
+// TODO: dir_with
 // TODO: merge(object | array ...$data): object | array
 // TODO: traverse(object | iterable $var, callable $f): object | iterable / traverse(object | iterable $var): Generator
 
@@ -63,6 +69,19 @@ function compare(mixed $a, mixed $b): int {
 	$isAComparable = $a instanceof Comparable;
 	$isBComparable = $b instanceof Comparable;
 	return $isAComparable || $isBComparable ? ($isAComparable ? $a->compare($b) : $b->compare($a)) : 0;
+}
+
+/**
+ * Check if the given directory exists. It checks not only the path, but if the path is a directory.
+ * @param string $dir Path to check.
+ * @return bool `true` if the directory exists.
+ * ```php
+ * dir_exists(__DIR__);                  // true
+ * dir_exists('non-existent-directory'); // false
+ * ```
+ */
+function dir_exists(string $dir): bool {
+	return file_exists($dir) && is_dir($dir);
 }
 
 /**

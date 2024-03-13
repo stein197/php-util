@@ -6,6 +6,7 @@
     "license": "MIT",
     "scripts": {
         "test": "phpunit --display-deprecations --display-notices --display-warnings test.php",
+        "test:dir_exists": "phpunit test.php --filter ::dir_exists_",
         "test:dump": "phpunit test.php --filter ::dump_",
         "test:function_curry": "phpunit test.php --filter ::function_curry_",
         "test:function_track": "phpunit test.php --filter ::function_track_",
