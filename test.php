@@ -124,6 +124,28 @@ class UtilTest extends TestCase {
 
 	#endregion
 
+	#region dir_size()
+
+	#[Test]
+	public function dir_size_should_return_minus_1_when_directory_does_not_exist(): void {
+		$this->assertEquals(-1, dir_size('non-existent'));
+	}
+
+	#[Test]
+	public function dir_size_should_return_minus_1_when_path_exists_and_is_file(): void {
+		$this->assertEquals(-1, dir_size(__FILE__));
+	}
+
+	#[Test]
+	public function dir_size_should_return_correct_result(): void {
+		$srcSize = dir_size(__DIR__ . DIRECTORY_SEPARATOR . 'src');
+		$vendorSize = dir_size(__DIR__ . DIRECTORY_SEPARATOR . 'vendor');
+		$thisSize = dir_size(__DIR__);
+		$this->assertTrue($srcSize < $vendorSize && $vendorSize < $thisSize);
+	}
+
+	#endregion
+
 	#region dump()
 
 	#[Test]

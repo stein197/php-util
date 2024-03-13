@@ -3,6 +3,7 @@ namespace Stein197\Util;
 
 use Countable;
 use Error;
+use Exception;
 use ReflectionFunction;
 use stdClass;
 use Stringable;
@@ -13,6 +14,7 @@ use function array_pop;
 use function array_push;
 use function array_search;
 use function explode;
+use function filesize;
 use function file_exists;
 use function is_array;
 use function is_callable;
@@ -29,6 +31,7 @@ use function get_object_vars;
 use function get_resource_id;
 use function get_resource_type;
 use function preg_replace;
+use function scandir;
 use function set_include_path;
 use function sizeof;
 use function spl_object_id;
@@ -44,10 +47,12 @@ use const PHP_INT_MAX;
 
 // TODO: dir_delete
 // TODO: dir_list
-// TODO: dir_size
 // TODO: dir_with
 // TODO: merge(object | array ...$data): object | array
 // TODO: traverse(object | iterable $var, callable $f): object | iterable / traverse(object | iterable $var): Generator
+
+const DIR_CURRENT = '.';
+const DIR_PARENT = '..';
 
 /**
  * Compare the given variables. Compare numbers (int, float), strings and objects that implement the intefaces
@@ -82,6 +87,30 @@ function compare(mixed $a, mixed $b): int {
  */
 function dir_exists(string $dir): bool {
 	return file_exists($dir) && is_dir($dir);
+}
+
+/**
+ * Calculate the size of a given directory.
+ * @param string $dir Directory to get size of.
+ * @return int Directory size in bytes. -1 if the directory does not exist.
+ * @throws Exception If there was a failed attempt to get the size of inner files.
+ */
+function dir_size(string $dir): int {
+	if (!dir_exists($dir))
+		return -1;
+	$result = 0;
+	foreach (array_filter(scandir($dir), fn (string $name): bool => $name !== DIR_CURRENT && $name !== DIR_PARENT) as $name) {
+		$path = $dir . DIRECTORY_SEPARATOR . $name;
+		if (is_dir($path)) {
+			$result += dir_size($path);
+		} else {
+			$size = filesize($path);
+			if ($size === false)
+				throw new Exception("Unable to get size of file '{$path}'");
+			$result += $size;
+		}
+	}
+	return $result;
 }
 
 /**
