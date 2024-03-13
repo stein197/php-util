@@ -2,6 +2,7 @@
 namespace Stein197\Util;
 
 use Countable;
+use Exception;
 use Iterator;
 use stdClass;
 use Stringable;
@@ -13,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 use function array_shift;
 use function fopen;
 use function fclose;
+use function getcwd;
 use function get_include_path;
 use function get_resource_id;
 use function get_resource_type;
@@ -142,6 +144,33 @@ class UtilTest extends TestCase {
 		$vendorSize = dir_size(__DIR__ . DIRECTORY_SEPARATOR . 'vendor');
 		$thisSize = dir_size(__DIR__);
 		$this->assertTrue($srcSize < $vendorSize && $vendorSize < $thisSize);
+	}
+
+	#endregion
+
+	#region dir_with()
+
+	#[Test]
+	public function dir_with_should_throw_an_exception_when_the_path_is_a_file(): void {
+		$this->expectException(Exception::class);
+		$this->expectExceptionMessage('Unable to change the current working directory to \'' . __FILE__ . '\'');
+		dir_with(__FILE__, function () {});
+	}
+
+	#[Test]
+	public function dir_with_should_work(): void {
+		$cwd = null;
+		dir_with(__DIR__ . DIRECTORY_SEPARATOR . 'vendor', fn () => $cwd = getcwd());
+		$this->assertEquals(__DIR__ . DIRECTORY_SEPARATOR . 'vendor', $cwd);
+		$this->assertEquals(__DIR__, getcwd());
+	}
+
+	#[Test]
+	public function dir_with_when_the_path_is_the_same_as_cwd(): void {
+		$cwd = null;
+		dir_with(__DIR__, fn () => $cwd = getcwd());
+		$this->assertEquals(__DIR__, $cwd);
+		$this->assertEquals(__DIR__, getcwd());
 	}
 
 	#endregion

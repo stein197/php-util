@@ -47,7 +47,6 @@ use const PHP_INT_MAX;
 
 // TODO: dir_delete
 // TODO: dir_list
-// TODO: dir_with
 // TODO: merge(object | array ...$data): object | array
 // TODO: traverse(object | iterable $var, callable $f): object | iterable / traverse(object | iterable $var): Generator
 
@@ -111,6 +110,32 @@ function dir_size(string $dir): int {
 		}
 	}
 	return $result;
+}
+
+/**
+ * Run a given function within a given directory. The current working directory resets back to the current after the
+ * execution.
+ * @param string $dir Directory to run the function within.
+ * @param callable $f Function to run.
+ * @return void
+ * @throws Exception When unable to get or set the current working directory.
+ * ```php
+ * // Suppose the current directory is "C:\php"
+ * dir_with('C:\\Another', function () {
+ * 	echo getcwd(); // 'C:\\Another'
+ * });
+ * echo getcwd(): // 'C:\\php'
+ * ```
+ */
+function dir_with(string $dir, callable $f): void {
+	$cur = getcwd();
+	if (!$cur)
+		throw new Exception('Unable to get the current working directory');
+	if (!chdir($dir));
+		throw new Exception("Unable to change the current working directory to '{$dir}'");
+	$f();
+	if (!chdir($cur))
+		throw new Exception("Unable to change the current working directory back to '{$dir}'");
 }
 
 /**
