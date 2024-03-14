@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\AfterClass;
 use PHPUnit\Framework\Attributes\BeforeClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use function array_filter;
+use function array_map;
 use function array_shift;
 use function fopen;
 use function fclose;
@@ -20,8 +22,10 @@ use function get_resource_id;
 use function get_resource_type;
 use function join;
 use function preg_quote;
+use function scandir;
 use function set_include_path;
 use function spl_object_id;
+use function strpos;
 use const DIRECTORY_SEPARATOR;
 use const PATH_SEPARATOR;
 use const PHP_INT_MAX;
@@ -122,6 +126,44 @@ class UtilTest extends TestCase {
 	#[Test]
 	public function dir_exists_when_path_contains_different_slashes(): void {
 		$this->assertTrue(dir_exists(__DIR__ . '/vendor\\bin'));
+	}
+
+	#endregion
+
+	#region dir_list()
+
+	#[Test]
+	public function dir_list_should_return_null_when_the_path_is_a_file(): void {
+		$this->assertNull(dir_list(__FILE__));
+	}
+
+	#[Test]
+	public function dir_list_should_return_an_empty_array_when_the_directory_is_empty(): void {
+		mkdir(__DIR__ . DIRECTORY_SEPARATOR . 'test-dir-tmp');
+		$this->assertEmpty(dir_list(__DIR__ . DIRECTORY_SEPARATOR . 'test-dir-tmp'));
+		rmdir(__DIR__ . DIRECTORY_SEPARATOR . 'test-dir-tmp');
+	}
+
+	#[Test]
+	public function dir_list_when_recursive_is_false(): void {
+		$expected = [...array_map(
+			fn ($n) => __DIR__ . DIRECTORY_SEPARATOR . $n,
+			array_filter(
+				scandir(__DIR__),
+				fn ($n) => $n !== '.' && $n !== '..'
+			)
+		)];
+		$this->assertEquals($expected, dir_list(__DIR__, false));
+	}
+
+	#[Test]
+	public function dir_list_when_recursive_is_true(): void {
+		foreach (dir_list(__DIR__, true) as $path)
+			if (strpos($path, 'vendor' . DIRECTORY_SEPARATOR . 'bin') !== false) {
+				$this->assertTrue(true);
+				return;
+			}
+		$this->fail();
 	}
 
 	#endregion

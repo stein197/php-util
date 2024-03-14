@@ -7,6 +7,7 @@
     "scripts": {
         "test": "phpunit --display-deprecations --display-notices --display-warnings test.php",
         "test:dir_exists": "phpunit test.php --filter ::dir_exists_",
+        "test:dir_list": "phpunit test.php --filter ::dir_list_",
         "test:dir_size": "phpunit test.php --filter ::dir_size_",
         "test:dir_with": "phpunit test.php --filter ::dir_with_",
         "test:dump": "phpunit test.php --filter ::dump_",

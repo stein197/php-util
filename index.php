@@ -12,6 +12,7 @@ use function array_key_exists;
 use function array_map;
 use function array_pop;
 use function array_push;
+use function array_reduce;
 use function array_search;
 use function explode;
 use function filesize;
@@ -46,7 +47,6 @@ use const PATH_SEPARATOR;
 use const PHP_INT_MAX;
 
 // TODO: dir_delete
-// TODO: dir_list
 // TODO: merge(object | array ...$data): object | array
 // TODO: traverse(object | iterable $var, callable $f): object | iterable / traverse(object | iterable $var): Generator
 
@@ -89,6 +89,27 @@ function dir_exists(string $dir): bool {
 }
 
 /**
+ * List the contents of a given directory. The result excludes directories `.` and `..` and prepends all filenames with
+ * the directory prefix.
+ * @param string $dir Directory to get contents of.
+ * @param bool $recursive List the contents recursively.
+ * @return null|array List of array contents or null if the path is not a directory.
+ */
+function dir_list(string $dir, bool $recursive = false): ?array {
+	return is_dir($dir) ? array_reduce(
+		array_map(
+			fn (string $name): string => $dir . DIRECTORY_SEPARATOR . $name,
+			array_filter(
+				scandir($dir),
+				fn (string $name): bool => $name !== DIR_CURRENT && $name !== DIR_PARENT
+			)
+		),
+		fn (array $carry, string $item) => [...$carry, ...($recursive && is_dir($item) ? dir_list($item, $recursive) : [$item])],
+		[]
+	) : null;
+}
+
+/**
  * Calculate the size of a given directory.
  * @param string $dir Directory to get size of.
  * @return int Directory size in bytes. -1 if the directory does not exist.
@@ -98,8 +119,7 @@ function dir_size(string $dir): int {
 	if (!dir_exists($dir))
 		return -1;
 	$result = 0;
-	foreach (array_filter(scandir($dir), fn (string $name): bool => $name !== DIR_CURRENT && $name !== DIR_PARENT) as $name) {
-		$path = $dir . DIRECTORY_SEPARATOR . $name;
+	foreach (dir_list($dir, false) as $path)
 		if (is_dir($path)) {
 			$result += dir_size($path);
 		} else {
@@ -108,7 +128,6 @@ function dir_size(string $dir): int {
 				throw new Exception("Unable to get size of file '{$path}'");
 			$result += $size;
 		}
-	}
 	return $result;
 }
 
